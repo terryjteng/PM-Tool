@@ -1,0 +1,1599 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Throughline | Project planning tool</title>
+<meta name="description" content="Throughline is a browser-based project planning tool: roadmap, milestones, backlog, sprint planning, sprint board, Gantt timeline with critical path, retrospectives, risk log, flow metrics, Scrum, Agile, and Lean Six Sigma coaches, and delivery reports.">
+<meta name="theme-color" content="#2F5BEA">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Throughline | Project planning tool">
+<meta property="og:description" content="Roadmap, sprint planning, Kanban board, Gantt timeline, risk log, and delivery reports in one place.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 22'%3E%3Crect x='1' y='3' width='12' height='4' rx='2' fill='%232F5BEA'/%3E%3Crect x='6' y='9' width='14' height='4' rx='2' fill='%232F5BEA' opacity='.6'/%3E%3Crect x='3' y='15' width='9' height='4' rx='2' fill='%232F5BEA' opacity='.35'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E9EDF1;--panel:#FFFFFF;--sunk:#F4F6F9;--ink:#17202B;--muted:#5B6776;--line:#D3DAE2;
+  --accent:#2F5BEA;--accent-ink:#FFFFFF;--soft:#E1E8FB;
+  --ok:#2E8B57;--warn:#B77C0C;--bad:#C8453B;--feat:#7A5AF8;
+  --ok-soft:#DDF0E4;--warn-soft:#F7EBD1;--bad-soft:#F8DEDB;--feat-soft:#EAE4FE;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#121A24;--panel:#1A2430;--sunk:#16202B;--ink:#E6ECF2;--muted:#97A5B6;--line:#2C3949;
+    --accent:#7093FF;--accent-ink:#0E1522;--soft:#22305A;
+    --ok:#55C08A;--warn:#E3AE43;--bad:#EE7A6E;--feat:#A48CFF;
+    --ok-soft:#1C3A2B;--warn-soft:#3C3016;--bad-soft:#442423;--feat-soft:#2D2650;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121A24;--panel:#1A2430;--sunk:#16202B;--ink:#E6ECF2;--muted:#97A5B6;--line:#2C3949;
+  --accent:#7093FF;--accent-ink:#0E1522;--soft:#22305A;
+  --ok:#55C08A;--warn:#E3AE43;--bad:#EE7A6E;--feat:#A48CFF;
+  --ok-soft:#1C3A2B;--warn-soft:#3C3016;--bad-soft:#442423;--feat-soft:#2D2650;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{height:100%;margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.45 "Instrument Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{margin:0;font-weight:650;letter-spacing:-.01em}
+h1{font-size:1.25rem}h2{font-size:1.1rem}h3{font-size:.95rem}
+p{margin:0}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.muted{color:var(--muted)}
+.small{font-size:.82rem}
+
+#app{display:grid;grid-template-columns:212px minmax(0,1fr);height:100%}
+#nav{background:var(--panel);border-right:1px solid var(--line);padding:18px 12px;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:10px;padding:0 8px 18px;font-weight:700;font-size:1.05rem}
+.brand svg{flex:none}
+.navgroup{margin-bottom:14px}
+.navgroup>span{display:block;font-size:.78rem;color:var(--muted);padding:0 10px 4px}
+.navbtn{display:flex;justify-content:space-between;align-items:center;width:100%;border:0;background:none;
+  text-align:left;padding:7px 10px;border-radius:7px;cursor:pointer;color:var(--ink)}
+.navbtn:hover{background:var(--sunk)}
+.navbtn[aria-current="page"]{background:var(--soft);color:var(--accent);font-weight:600}
+.navbtn .count{font-size:.75rem;background:var(--bad);color:#fff;border-radius:10px;padding:0 7px;line-height:18px}
+#mainwrap{overflow:auto;min-width:0}
+#top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 24px;border-bottom:1px solid var(--line);
+  background:var(--panel);position:sticky;top:0;z-index:20}
+#top .proj{border:0;background:none;padding:0;cursor:pointer;text-align:left}
+#top .proj small{display:block;color:var(--muted);font-size:.8rem}
+#top .sp{flex:1}
+#main{padding:22px 24px 60px;max-width:1320px}
+
+.btn{border:1px solid var(--line);background:var(--panel);padding:7px 13px;border-radius:7px;cursor:pointer;
+  font-weight:550;white-space:nowrap;line-height:1.2}
+.btn:hover{border-color:var(--muted)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.pri:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--bad);border-color:transparent;background:transparent}
+.btn.sm{padding:4px 9px;font-size:.84rem;font-weight:500}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+.viewhead{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.viewhead h1{font-size:1.45rem}
+.viewhead p{color:var(--muted);max-width:62ch}
+.viewhead .sp{flex:1}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.stack>*+*{margin-top:16px}
+.panel h2+*{margin-top:12px}
+.phead{display:flex;align-items:center;gap:10px;justify-content:space-between;margin-bottom:12px}
+.phead h2{font-size:1rem}
+
+/* dashboard hero */
+.hero{padding:22px 24px}
+.hero-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.hero-head h2{font-size:1.6rem;letter-spacing:-.02em}
+.hero-day{font-size:.95rem;color:var(--muted);text-align:right}
+.hero-day b{display:block;font-size:2.4rem;line-height:1;color:var(--ink);letter-spacing:-.03em}
+.hero-body{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:24px;margin-top:14px;align-items:start}
+.kpis{display:grid;gap:14px}
+.kpi b{display:block;font-size:1.5rem;letter-spacing:-.02em;line-height:1.1}
+.kpi span{color:var(--muted);font-size:.84rem}
+.signal{margin-top:12px;padding:9px 12px;border-radius:7px;font-weight:550}
+.signal.ok{background:var(--ok-soft);color:var(--ok)}
+.signal.warn{background:var(--warn-soft);color:var(--warn)}
+.signal.bad{background:var(--bad-soft);color:var(--bad)}
+
+.chart{width:100%;height:auto;display:block}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:.82rem;color:var(--muted);margin-top:6px}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.legend i.dash{background:repeating-linear-gradient(90deg,var(--muted) 0 4px,transparent 4px 7px)!important}
+
+/* chips */
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:.78rem;padding:1px 8px;border-radius:20px;
+  background:var(--sunk);border:1px solid var(--line);white-space:nowrap;line-height:18px}
+.chip.ok{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.chip.warn{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.chip.bad{background:var(--bad-soft);color:var(--bad);border-color:transparent}
+.chip.feat{background:var(--feat-soft);color:var(--feat);border-color:transparent}
+.chip.acc{background:var(--soft);color:var(--accent);border-color:transparent}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
+.tt{display:inline-flex;align-items:center;gap:5px;font-size:.78rem;color:var(--muted);white-space:nowrap}
+.tt::before{content:"";width:9px;height:9px;border-radius:2px;background:var(--c)}
+.tt-story{--c:var(--accent)}.tt-task{--c:var(--muted)}.tt-bug{--c:var(--bad)}.tt-feature{--c:var(--feat)}
+.pbadge{font-size:.75rem;font-weight:650;padding:0 6px;border-radius:4px;line-height:18px}
+.pri-P0{background:var(--bad);color:#fff}.pri-P1{background:var(--warn-soft);color:var(--warn)}
+.pri-P2{background:var(--sunk);color:var(--muted)}.pri-P3{color:var(--muted)}
+.pts{font-size:.78rem;font-weight:650;min-width:24px;text-align:center;background:var(--sunk);border-radius:10px;padding:0 6px;line-height:20px}
+.av{width:24px;height:24px;border-radius:50%;display:inline-grid;place-items:center;font-size:.68rem;font-weight:700;color:#fff;flex:none}
+.av.none{background:var(--sunk);color:var(--muted);border:1px dashed var(--line)}
+.key{font-size:.8rem;color:var(--muted);font-weight:600;white-space:nowrap}
+.link{border:0;background:none;padding:0;cursor:pointer;text-align:left;color:var(--ink)}
+.link:hover{color:var(--accent);text-decoration:underline}
+
+/* bars */
+.meter{height:8px;background:var(--sunk);border-radius:6px;overflow:hidden;position:relative}
+.meter>i{display:block;height:100%;background:var(--accent);border-radius:6px}
+.meter.over>i{background:var(--bad)}
+.meter.hi>i{background:var(--warn)}
+
+/* tables */
+.tblwrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th{text-align:left;font-weight:600;color:var(--muted);font-size:.8rem;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right}
+
+/* backlog */
+.bsec{padding:0;overflow:hidden}
+.bsec.over-drop{outline:2px dashed var(--accent);outline-offset:-2px}
+.bhead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 16px;background:var(--sunk);border-bottom:1px solid var(--line)}
+.bhead h2{font-size:1rem}
+.bhead .sp{flex:1}
+.bhead .meter{width:140px}
+.trow{display:grid;grid-template-columns:16px 70px minmax(0,1fr) auto auto auto 24px 130px;gap:10px;align-items:center;
+  padding:7px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+.trow:last-child{border-bottom:0}
+.trow.dragging{opacity:.4}
+.trow.drop-before{box-shadow:inset 0 2px 0 var(--accent)}
+.handle{cursor:grab;color:var(--muted);font-size:.8rem;letter-spacing:-2px;user-select:none}
+.trow .ttl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trow select{font-size:.82rem;padding:3px 4px;border:1px solid var(--line);border-radius:6px;background:var(--panel);max-width:130px}
+.epicchip{font-size:.75rem;padding:1px 7px;border-radius:5px;background:color-mix(in srgb,var(--ec) 16%,transparent);color:var(--ink);white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis}
+.empty{padding:22px 16px;color:var(--muted);text-align:center}
+
+/* board */
+.board{display:grid;grid-template-columns:repeat(4,minmax(220px,1fr));gap:14px;overflow-x:auto;padding-bottom:6px}
+.col{background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:10px;min-height:320px}
+.col.over-drop{outline:2px dashed var(--accent);outline-offset:-2px}
+.colhead{display:flex;justify-content:space-between;align-items:center;padding:2px 4px 10px;font-weight:600}
+.colhead .wip{font-size:.78rem;color:var(--muted);font-weight:500}
+.colhead .wip.bad{color:var(--bad);font-weight:650}
+.card{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--c);border-radius:8px;padding:10px 11px;margin-bottom:8px;cursor:grab}
+.card:hover{border-color:var(--muted);border-left-color:var(--c)}
+.card.dragging{opacity:.4}
+.card .ctop{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.card .ctitle{margin:6px 0 9px;font-weight:550;line-height:1.3}
+.card .cfoot{display:flex;align-items:center;gap:6px}
+.card .cfoot .sp{flex:1}
+.blocked{font-size:.74rem;color:var(--bad);font-weight:600}
+
+/* roadmap */
+.roadwrap{overflow-x:auto}
+.road{min-width:780px}
+.rrow{display:grid;grid-template-columns:230px minmax(0,1fr);align-items:stretch;border-bottom:1px solid var(--line)}
+.rrow:last-child{border-bottom:0}
+.rlabel{padding:10px 12px 10px 0}
+.rlabel b{display:block;font-weight:600}
+.rtrack{position:relative;min-height:52px}
+.rhead .rtrack{min-height:28px}
+.mline{position:absolute;top:0;bottom:0;border-left:1px solid var(--line)}
+.mlabel{position:absolute;top:4px;font-size:.78rem;color:var(--muted);padding-left:6px;white-space:nowrap}
+.today{position:absolute;top:0;bottom:0;border-left:2px solid var(--bad);z-index:2}
+.rbar{position:absolute;top:13px;height:26px;border-radius:6px;background:color-mix(in srgb,var(--ec) 22%,transparent);
+  border:1px solid color-mix(in srgb,var(--ec) 60%,transparent);cursor:pointer;overflow:hidden;padding:0}
+.rbar>i{position:absolute;inset:0 auto 0 0;background:var(--ec);opacity:.85}
+.rbar>span{position:relative;font-size:.78rem;font-weight:650;padding:0 8px;line-height:24px;white-space:nowrap;color:var(--ink)}
+.diamond{position:absolute;top:16px;width:14px;height:14px;transform:translateX(-7px) rotate(45deg);background:var(--ink);border:0;padding:0;cursor:pointer}
+.diamond.bad{background:var(--bad)}.diamond.ok{background:var(--ok)}
+.dlabel{position:absolute;top:32px;font-size:.74rem;white-space:nowrap;transform:translateX(-50%);color:var(--muted)}
+
+/* gantt */
+.gscroll{overflow:auto;max-height:calc(100vh - 230px);border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.gantt{position:relative}
+.grow{display:flex;height:34px;border-bottom:1px solid var(--line)}
+.grow.ghdr{height:26px;background:var(--sunk)}
+.glabel{position:sticky;left:0;z-index:4;width:250px;flex:none;background:var(--panel);border-right:1px solid var(--line);
+  display:flex;align-items:center;gap:8px;padding:0 10px;overflow:hidden;white-space:nowrap}
+.ghdr .glabel{background:var(--sunk);font-size:.78rem;color:var(--muted)}
+.grow.epic .glabel{font-weight:650}
+.grow.epic{background:var(--sunk)}
+.grow.epic .glabel{background:var(--sunk)}
+.glabel .ttl{overflow:hidden;text-overflow:ellipsis}
+.gtrack{position:relative;flex:none}
+.gday{position:absolute;top:0;height:26px;font-size:.7rem;color:var(--muted);text-align:center;line-height:26px;white-space:nowrap}
+.gday.we{background:color-mix(in srgb,var(--line) 45%,transparent)}
+.gsprint{position:absolute;top:0;height:26px;font-size:.74rem;font-weight:600;padding-left:6px;line-height:26px;border-left:1px solid var(--muted);white-space:nowrap;overflow:hidden}
+.gbar{position:absolute;top:6px;height:22px;border-radius:5px;background:var(--accent);color:var(--accent-ink);font-size:.72rem;font-weight:650;
+  padding:0 8px;line-height:22px;cursor:grab;touch-action:none;user-select:none;overflow:hidden;white-space:nowrap;z-index:2}
+.gbar.s-done{background:var(--ok)}
+.gbar.s-inprogress,.gbar.s-review{background:var(--accent)}
+.gbar.s-todo,.gbar.s-backlog{background:color-mix(in srgb,var(--accent) 45%,var(--panel));color:var(--ink)}
+.gbar.late{box-shadow:0 0 0 2px var(--bad)}
+.gbar .grip{position:absolute;right:0;top:0;bottom:0;width:9px;cursor:ew-resize;background:linear-gradient(90deg,transparent,rgba(0,0,0,.18))}
+.gsum{position:absolute;top:13px;height:8px;border-radius:4px;background:var(--ec)}
+.gover{position:absolute;left:0;top:0;pointer-events:none;z-index:3}
+
+/* capacity heat */
+.heat td{text-align:center;font-weight:600;font-size:.84rem}
+.heat td.h0{color:var(--muted)}
+.heat td.h1{background:var(--ok-soft);color:var(--ok)}
+.heat td.h2{background:var(--warn-soft);color:var(--warn)}
+.heat td.h3{background:var(--bad-soft);color:var(--bad)}
+.heat td:first-child{text-align:left;font-weight:500}
+
+/* planning gauge */
+.gauge{position:relative;height:30px;background:var(--sunk);border-radius:8px;margin:26px 0 30px}
+.gauge>i{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:8px}
+.gauge>i.over{background:var(--bad)}
+.gmark{position:absolute;top:-8px;bottom:-8px;border-left:2px dashed var(--ink)}
+.gmark span{position:absolute;white-space:nowrap;font-size:.76rem;transform:translateX(-50%)}
+.gmark.top span{top:-18px}.gmark.bot span{bottom:-20px}
+
+/* risks */
+.rgrid{display:grid;grid-template-columns:auto repeat(3,1fr);grid-template-rows:repeat(3,64px) auto;gap:4px;max-width:360px}
+.rcell{border-radius:6px;display:grid;place-items:center;font-weight:700;font-size:1.1rem}
+.rcell.s1{background:var(--ok-soft);color:var(--ok)}.rcell.s2{background:var(--warn-soft);color:var(--warn)}.rcell.s3{background:var(--bad-soft);color:var(--bad)}
+.rcell.zero{opacity:.45}
+.raxis{font-size:.75rem;color:var(--muted);display:grid;place-items:center}
+
+/* tiles */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.tile b{display:block;font-size:1.45rem;letter-spacing:-.02em}
+.tile span{font-size:.82rem;color:var(--muted)}
+
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.filters select,.filters input,.selectlike{padding:6px 9px;border:1px solid var(--line);border-radius:7px;background:var(--panel)}
+.filters input{min-width:200px}
+
+.list1>li{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.list1{list-style:none;margin:0;padding:0}
+.list1>li:last-child{border-bottom:0}
+.list1 .sp{flex:1;min-width:0}
+
+.mscard{display:grid;grid-template-columns:120px minmax(0,1fr) auto;gap:18px;align-items:start}
+.msdate b{display:block;font-size:1.5rem;letter-spacing:-.02em;line-height:1.1}
+
+
+/* overview */
+.ovhero{padding:24px 26px 30px;margin-bottom:16px}
+.ovtop{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;flex-wrap:wrap}
+.ovname{font-size:2.1rem;letter-spacing:-.03em;line-height:1.1;margin-top:2px}
+.ovdesc{margin-top:6px;max-width:64ch;font-size:1.02rem}
+.ovhealth{border-radius:10px;padding:10px 16px;min-width:150px}
+.ovhealth span{display:block;font-size:.8rem;opacity:.85}
+.ovhealth b{font-size:1.35rem;letter-spacing:-.02em}
+.ovhealth{background:var(--sunk)}.ovhealth.ok{background:var(--ok-soft);color:var(--ok)}.ovhealth.warn{background:var(--warn-soft);color:var(--warn)}.ovhealth.bad{background:var(--bad-soft);color:var(--bad)}
+.ovstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+.ovstats b{display:block;font-size:1.45rem;letter-spacing:-.02em;line-height:1.15}
+.ovstats span{font-size:.82rem;color:var(--muted)}
+.mstrip{position:relative;height:118px;margin:22px 8px 0}
+.mtrack{position:absolute;left:0;right:0;top:56px;height:6px;border-radius:3px;background:var(--sunk);overflow:hidden}
+.mtrack i{display:block;height:100%;background:var(--accent)}
+.mtoday{position:absolute;top:66px;transform:translateX(-50%);font-size:.72rem;color:var(--accent)}
+.mtoday::before{content:"";position:absolute;left:50%;top:-14px;height:10px;border-left:2px solid var(--accent)}
+.mpt{position:absolute;top:50px;width:18px;height:18px;border-radius:50%;transform:translateX(-50%);border:3px solid var(--panel);background:var(--muted);cursor:pointer;padding:0;box-shadow:0 0 0 1px var(--line)}
+.mpt.ok{background:var(--ok)}.mpt.warn{background:var(--warn)}.mpt.bad{background:var(--bad)}
+.mlab{position:absolute;transform:translateX(-50%);text-align:center;white-space:nowrap;font-size:.8rem;line-height:1.25}
+.mlab span{display:block;color:var(--muted);font-size:.75rem}
+.mlab.up{top:4px}.mlab.dn{top:84px}
+.mlab:first-of-type{transform:translateX(-20%)}
+.ovgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:980px){.ovgrid{grid-template-columns:1fr}}
+
+
+/* portfolio */
+.projsel{display:block;padding:8px 10px 2px;font-size:.78rem;color:var(--muted)}
+.projsel select{display:block;width:100%;margin-top:4px;padding:6px 8px;border:1px solid var(--line);border-radius:7px;background:var(--sunk);color:var(--ink);font-size:.9rem;font-weight:600}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.pcard h2{font-size:1.15rem;margin-top:2px}
+.pdesc{max-width:60ch}
+.pfacts{display:grid;grid-template-columns:auto 1fr;gap:7px 14px;margin:14px 0;font-size:.88rem}
+.pfacts dt{color:var(--muted)}.pfacts dd{margin:0}
+.pteam{display:flex;gap:4px;flex-wrap:wrap}
+@media (max-width:860px){.projsel{padding:0 6px}.projsel span{display:none}.projsel select{margin:0;min-width:150px}}
+
+/* welcome */
+.btn.lg{padding:10px 20px;font-size:1rem}
+.welcome{max-width:760px;margin:4vh auto 0;padding:34px 36px}
+.welcome h1{font-size:2rem;letter-spacing:-.03em;line-height:1.15;margin:4px 0 10px}
+.welcome .lead{font-size:1.05rem;color:var(--muted);max-width:58ch}
+.welcome .row{margin:22px 0 4px}
+.wfeat{list-style:none;margin:26px 0 0;padding:22px 0 0;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px 26px}
+.wfeat b{display:block;margin-bottom:2px}
+.wfeat span{color:var(--muted);font-size:.88rem}
+.welcome .fine{margin-top:24px}
+@media (max-width:860px){.welcome{padding:24px 20px;margin-top:0}}
+
+/* modal */
+#modal{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:16px}
+#modal[hidden]{display:none}
+.scrim{position:absolute;inset:0;background:rgba(10,16,24,.5)}
+.dialog{position:relative;background:var(--panel);border-radius:12px;width:min(640px,100%);max-height:calc(100% - 20px);overflow:auto;border:1px solid var(--line)}
+.dialog header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--panel);z-index:1}
+.dialog .x{border:0;background:none;font-size:1.5rem;line-height:1;cursor:pointer;color:var(--muted)}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px;padding:16px 20px}
+.fld{display:flex;flex-direction:column;gap:4px;font-size:.84rem;color:var(--muted);min-width:0}
+.fld.wide{grid-column:1/-1}
+.fld input,.fld select,.fld textarea{padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:var(--sunk);color:var(--ink);font-size:.93rem;width:100%}
+.fld small{font-size:.76rem}
+.dnote{padding:0 20px 12px;font-size:.88rem;color:var(--muted)}
+.dnote p+p{margin-top:6px}
+.dialog footer{display:flex;gap:8px;padding:14px 20px;border-top:1px solid var(--line);position:sticky;bottom:0;background:var(--panel)}
+.dialog footer .sp{flex:1}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--panel);
+  padding:10px 16px;border-radius:8px;font-weight:550;z-index:200;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.show{opacity:1}
+
+/* gantt: critical path, baseline, milestones */
+.gbar.crit{box-shadow:0 0 0 2px var(--warn)}
+.gbar.crit.late{box-shadow:0 0 0 2px var(--bad)}
+.gbase{position:absolute;top:29px;height:4px;border-radius:2px;background:var(--muted);opacity:.6;z-index:1}
+.gms .diamond{top:7px;width:11px;height:11px;transform:translateX(-5px) rotate(45deg)}
+.gms .dl{position:absolute;top:0;font-size:.72rem;line-height:26px;padding-left:10px;white-space:nowrap;color:var(--muted)}
+
+/* flow + retros */
+.flowgrid{grid-template-columns:repeat(auto-fit,minmax(min(460px,100%),1fr))}
+.numin{width:72px;padding:5px 7px;border:1px solid var(--line);border-radius:7px;background:var(--panel)}
+.statlist{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:.88rem;margin:0}
+.statlist dt{color:var(--muted)}.statlist dd{margin:0;font-weight:600}
+.retrocols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+@media (max-width:980px){.retrocols{grid-template-columns:1fr}}
+.radd{display:flex;gap:6px;margin-top:10px}
+.radd input{flex:1;min-width:0;padding:6px 9px;border:1px solid var(--line);border-radius:7px;background:var(--sunk)}
+.rx{border:0;background:none;color:var(--muted);font-size:1.2rem;line-height:1;cursor:pointer;padding:0 4px}
+.rx:hover{color:var(--bad)}
+
+/* coaches */
+.agentgrid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr);gap:16px;align-items:start}
+.agentgrid .chat{position:sticky;top:84px}
+@media (max-width:1100px){.agentgrid{grid-template-columns:1fr}.agentgrid .chat{position:static}}
+.finds>li{align-items:flex-start}.finds .dot{margin-top:7px}
+.fix{margin-top:3px;color:var(--ink)}
+.fix::before{content:"→ ";color:var(--accent);font-weight:700}
+.brief{white-space:pre-wrap;background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:0;max-height:340px;overflow:auto;
+  font:.82rem/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.chat{display:flex;flex-direction:column;max-height:calc(100vh - 110px)}
+.msgs{flex:1;overflow:auto;min-height:120px;display:flex;flex-direction:column;gap:10px;padding:2px}
+.msg{padding:10px 12px;border-radius:10px;font-size:.9rem;overflow-wrap:anywhere}
+.msg.user{background:var(--soft);align-self:flex-end;max-width:88%;white-space:pre-wrap}
+.msg.assistant{background:var(--sunk);border:1px solid var(--line)}
+.msg>*+*{margin-top:8px}
+.msg h4{font-size:.92rem;margin-top:12px}.msg h4:first-child{margin-top:0}
+.msg ul,.msg ol{margin-bottom:0;padding-left:20px}
+.msg pre{white-space:pre-wrap;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px;font-size:.8rem;margin-bottom:0}
+.msg code{font-size:.85em;background:var(--panel);border-radius:4px;padding:0 4px}
+.msg table{font-size:.82rem}
+.sugs{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.sugs .btn{white-space:normal;text-align:left}
+.ain{display:flex;gap:8px;margin-top:12px;align-items:flex-end}
+.ain textarea{flex:1;resize:vertical;padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:var(--sunk);min-height:44px}
+
+.setup{max-width:560px;margin:8vh auto;padding:30px}
+.setup h1{font-size:1.8rem;letter-spacing:-.02em;margin-bottom:8px}
+.setup .fgrid{padding:18px 0}
+.setup .row{display:flex;gap:10px;flex-wrap:wrap}
+
+@media (max-width:860px){
+  #app{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+  #nav{border-right:0;border-bottom:1px solid var(--line);padding:8px;display:flex;gap:4px;overflow-x:auto;overflow-y:hidden;white-space:nowrap}
+  .brand{padding:6px 10px 6px 4px}
+  .brand span{display:none}
+  .navgroup{display:flex;margin:0}
+  .navgroup>span{display:none}
+  .navbtn{width:auto;gap:6px}
+  #top{position:static;padding:12px 16px}
+  #main{padding:16px 14px 50px}
+  .hero-body{grid-template-columns:1fr}
+  .kpis{grid-template-columns:1fr 1fr}
+  .trow{grid-template-columns:62px minmax(0,1fr) auto 24px;row-gap:4px}
+  .trow .handle,.trow .epicchip,.trow .pbadge{display:none}
+  .trow select{grid-column:1/-1;max-width:none}
+  .fgrid{grid-template-columns:1fr}
+  .mscard{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="nav" aria-label="Views"></aside>
+  <div id="mainwrap">
+    <header id="top"></header>
+    <main id="main"><noscript><p class="muted" style="padding:40px 0">Throughline needs JavaScript to run.</p></noscript></main>
+  </div>
+</div>
+<div id="modal" hidden></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ---------- utilities ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clone=o=>JSON.parse(JSON.stringify(o));
+const DAY=864e5;
+const iso=d=>{const x=new Date(d);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')};
+const parse=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const addDays=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return iso(d)};
+const diff=(a,b)=>Math.round((parse(b)-parse(a))/DAY);
+const TODAY=iso(new Date());
+const fmtD=s=>s?parse(s).toLocaleDateString(undefined,{month:'short',day:'numeric'}):'—';
+const fmtDY=s=>s?parse(s).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):'—';
+const uid=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-3);
+function workdays(a,b){let n=0;for(let d=a;d<=b;d=addDays(d,1)){const w=parse(d).getDay();if(w&&w<6)n++}return n}
+const plural=(n,w)=>n+' '+w+(n===1?'':'s');
+
+/* ---------- constants ---------- */
+const STATUSES=[['triage','Triage'],['backlog','Backlog'],['todo','To do'],['inprogress','In progress'],['review','In review'],['done','Done']];
+const STL=Object.fromEntries(STATUSES);
+const TYPES=[['story','Story'],['task','Task'],['bug','Bug'],['feature','Feature request']];
+const TYL=Object.fromEntries(TYPES);
+const PRI=[['P0','P0 Urgent'],['P1','P1 High'],['P2','P2 Medium'],['P3','P3 Low']];
+const SEV=[['critical','Critical'],['major','Major'],['minor','Minor'],['trivial','Trivial']];
+const COLORS=[['#2F5BEA','Cobalt'],['#7A5AF8','Violet'],['#0E9384','Teal'],['#C98A12','Amber'],['#C8453B','Brick'],['#3F7D20','Moss'],['#B4467D','Plum'],['#4B5B6E','Slate']];
+const RAID=[['risk','Risk'],['assumption','Assumption'],['issue','Issue'],['dependency','Dependency']];
+
+/* ---------- state ---------- */
+let PS={};       // projects by id: {id, project, members, sprints, epics, milestones, risks, nextNum}
+let PT={};       // tickets by project id, then by ticket id
+let S=null;      // the current project
+let T={};        // the current project's tickets
+const UI={cur:null,view:'dashboard',tf:{type:'all',status:'open',q:''},bq:'',boardWho:'',planSprint:null,reportSprint:null,retroSprint:null,mcScope:null,gZoom:22,gCrit:true,gBase:true,dragId:null,aiDraft:'',aiPending:null};
+const projOrder=()=>Object.keys(PS).filter(id=>PS[id]&&PS[id].project).sort((a,b)=>String(PS[a].createdAt||'').localeCompare(String(PS[b].createdAt||''))||PS[a].project.name.localeCompare(PS[b].project.name));
+function syncCur(){
+  if(!UI.cur||!PS[UI.cur])UI.cur=projOrder()[0]||null;
+  S=UI.cur?PS[UI.cur]:null;
+  if(UI.cur){PT[UI.cur]=PT[UI.cur]||{};T=PT[UI.cur]}else T={};
+  try{localStorage.setItem(LS_CUR,UI.cur||'')}catch(e){}
+}
+function switchProject(pid){UI.cur=pid;UI.planSprint=null;UI.reportSprint=null;UI.retroSprint=null;UI.mcScope=null;UI.boardWho='';UI.bq='';syncCur()}
+function withProject(pid,fn){const s0=S,t0=T;S=PS[pid];T=PT[pid]||{};try{return fn()}finally{S=s0;T=t0}}
+
+/* ---------- persistence ---------- */
+const LS='throughline:v2',LS_CUR='throughline:cur';
+let saveWarned=false;
+function localLoad(){
+  try{const j=JSON.parse(localStorage.getItem(LS)||'null');if(j&&j.PS){PS=j.PS;PT=j.PT||{}}}catch(e){}
+  try{UI.cur=localStorage.getItem(LS_CUR)||null}catch(e){}
+  syncCur();
+}
+function localSave(){
+  try{localStorage.setItem(LS,JSON.stringify({PS,PT}))}
+  catch(e){if(!saveWarned){saveWarned=true;toast('This browser is blocking storage, so your changes won’t survive a reload.')}}
+}
+function saveWs(){if(S)localSave()}
+function saveT(t){T[t.id]=t;localSave()}
+function delT(id){delete T[id];localSave()}
+function deleteProject(pid){
+  const name=PS[pid]?PS[pid].project.name:'Project';delete PS[pid];delete PT[pid];localSave();
+  UI.cur=null;syncCur();UI.view=S?'dashboard':'portfolio';render();toast(name+' deleted');
+}
+
+/* ---------- model helpers ---------- */
+const tickets=()=>Object.values(T);
+const byId=(arr,id)=>arr.find(x=>x.id===id);
+const member=id=>byId(S.members,id);
+const activeSprint=()=>S.sprints.find(s=>s.status==='active');
+const sortedSprints=()=>[...S.sprints].sort((a,b)=>a.start<b.start?-1:a.start>b.start?1:0);
+const sprintTickets=sid=>tickets().filter(t=>t.sprintId===sid);
+const pts=a=>a.reduce((s,t)=>s+(+t.points||0),0);
+const isDone=t=>t.status==='done';
+const maxRank=()=>tickets().reduce((m,t)=>Math.max(m,+t.rank||0),0);
+const byRank=(a,b)=>(a.rank||0)-(b.rank||0);
+function memberAvail(m,s){const wd=workdays(s.start,s.end)||1;const off=(m.timeOff||{})[s.id]||0;return Math.round((+m.capacity||0)*Math.max(0,1-off/wd))}
+function sprintCap(s){return S.members.reduce((a,m)=>a+memberAvail(m,s),0)}
+function velocity(){const c=sortedSprints().filter(s=>s.status==='closed').slice(-3);return c.length?Math.round(c.reduce((a,s)=>a+(+s.completed||0),0)/c.length):0}
+function burn(s){
+  if(s.status==='closed'&&s.burn)return s.burn;
+  const ts=sprintTickets(s.id),total=pts(ts),len=diff(s.start,s.end),out=[];
+  for(let i=0;i<=len;i++){const d=addDays(s.start,i);if(d>TODAY)break;out.push(total-pts(ts.filter(t=>isDone(t)&&t.doneAt&&t.doneAt<=d)))}
+  return out;
+}
+function setStatus(t,st){
+  t.status=st;
+  if(st==='done'){if(!t.doneAt)t.doneAt=TODAY}else t.doneAt=null;
+  if((st==='inprogress'||st==='review'||st==='done')&&!t.startedAt)t.startedAt=TODAY;
+}
+function moveToSprint(t,sid){
+  t.sprintId=sid||null;
+  if(sid&&(t.status==='backlog'||t.status==='triage'))t.status='todo';
+  if(!sid&&!isDone(t)&&t.status!=='triage')t.status='backlog';
+}
+function blockers(t){return (t.deps||[]).map(id=>T[id]).filter(d=>d&&!isDone(d))}
+function epicProgress(e){const ts=tickets().filter(t=>t.epicId===e.id&&t.status!=='triage');const tot=pts(ts),d=pts(ts.filter(isDone));return {tot,done:d,pct:tot?Math.round(d/tot*100):0,count:ts.length}}
+function forecast(epicIds){
+  const ts=tickets().filter(t=>epicIds.includes(t.epicId)&&t.status!=='triage');
+  const rem=pts(ts.filter(t=>!isDone(t)));
+  if(!rem)return {rem:0,date:null};
+  const v=velocity();if(!v)return {rem,date:null};
+  const a=activeSprint();const anchor=a?a.start:TODAY;
+  return {rem,date:addDays(anchor,Math.ceil(rem/v)*14-1)};
+}
+function msStatus(m){
+  const own=S.epics.filter(e=>e.milestoneId===m.id);
+  const cum=S.epics.filter(e=>{const mm=byId(S.milestones,e.milestoneId);return mm&&mm.date<=m.date}).map(e=>e.id);
+  const f=forecast(cum);
+  const prog=own.reduce((a,e)=>{const p=epicProgress(e);a.tot+=p.tot;a.done+=p.done;return a},{tot:0,done:0});
+  let st,cls;
+  if(prog.tot&&prog.done===prog.tot){st='Complete';cls='ok'}
+  else if(m.date<TODAY){st='Missed';cls='bad'}
+  else if(!f.date){st=velocity()?'On track':'No velocity yet';cls=velocity()?'ok':''}
+  else if(f.date<=m.date){st='On track';cls='ok'}
+  else if(diff(m.date,f.date)<=7){st='At risk';cls='warn'}
+  else {st='Off track';cls='bad'}
+  return {st,cls,f,own,prog,pct:prog.tot?Math.round(prog.done/prog.tot*100):0};
+}
+
+/* ---------- small renderers ---------- */
+function av(id){const m=id&&member(id);if(!m)return '<span class="av none" title="Unassigned">–</span>';const ini=m.name.split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();return `<span class="av" style="background:${esc(m.color)}" title="${esc(m.name)}">${esc(ini)}</span>`}
+const ttag=t=>`<span class="tt tt-${t.type}">${esc(TYL[t.type]||t.type)}</span>`;
+const pri=p=>`<span class="pbadge pri-${esc(p)}">${esc(p)}</span>`;
+function epicChip(id){const e=id&&byId(S.epics,id);return e?`<span class="epicchip" style="--ec:${esc(e.color)}">${esc(e.title)}</span>`:''}
+const sevChip=s=>s?`<span class="chip ${s==='critical'?'bad':s==='major'?'warn':''}">${esc(s[0].toUpperCase()+s.slice(1))}</span>`:'';
+function meter(val,max){const p=max?Math.min(100,val/max*100):0;const cls=max&&val>max?'over':max&&val>max*.9?'hi':'';return `<div class="meter ${cls}"><i style="width:${p}%"></i></div>`}
+function legend(items){return `<div class="legend">${items.map(([c,l,d])=>`<span><i class="${d?'dash':''}" style="background:${c}"></i>${esc(l)}</span>`).join('')}</div>`}
+function niceMax(v){if(v<=0)return {max:4,step:1};const raw=v/4,p=Math.pow(10,Math.floor(Math.log10(raw))),n=raw/p;const s=(n<=1?1:n<=2?2:n<=5?5:10)*p;return {max:Math.ceil(v/s)*s,step:s}}
+
+function svgLine({w=640,h=230,labels,series,ymax}){
+  const pl=36,pr=12,pt=12,pb=28,n=labels.length;const {max,step}=niceMax(ymax||1);
+  const x=i=>pl+i*(w-pl-pr)/Math.max(1,n-1),y=v=>pt+(h-pt-pb)*(1-v/max);
+  let g='';for(let v=0;v<=max+1e-9;v+=step){g+=`<line x1="${pl}" x2="${w-pr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${pl-7}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${Math.round(v)}</text>`}
+  const k=Math.ceil(n/7);labels.forEach((l,i)=>{if(i%k===0||i===n-1)g+=`<text x="${x(i)}" y="${h-8}" text-anchor="middle" font-size="11" fill="var(--muted)">${esc(l)}</text>`});
+  series.forEach(s=>{if(!s.vals.length)return;const d=s.vals.map((v,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(v).toFixed(1)).join(' ');
+    g+=`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="${s.dash?1.5:2.5}" ${s.dash?'stroke-dasharray="5 4"':''} stroke-linejoin="round" stroke-linecap="round"/>`;
+    if(s.dots)s.vals.forEach((v,i)=>{g+=`<circle cx="${x(i)}" cy="${y(v)}" r="3" fill="var(--panel)" stroke="${s.color}" stroke-width="2"><title>${esc(labels[i])}: ${Math.round(v)}</title></circle>`})});
+  return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(series.map(s=>s.name).join(' vs '))}">${g}</svg>`;
+}
+function svgBars({w=640,h=230,groups,avg,ymax}){
+  const pl=36,pr=12,pt=14,pb=28;const {max,step}=niceMax(ymax||1);const y=v=>pt+(h-pt-pb)*(1-v/max);
+  const n=groups.length||1,gw=(w-pl-pr)/n;let g='';
+  for(let v=0;v<=max+1e-9;v+=step)g+=`<line x1="${pl}" x2="${w-pr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${pl-7}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${Math.round(v)}</text>`;
+  groups.forEach((gr,i)=>{const k=gr.vals.length,bw=Math.min(26,gw*.7/k),x0=pl+i*gw+(gw-bw*k-4*(k-1))/2;
+    gr.vals.forEach((b,j)=>{const bx=x0+j*(bw+4);g+=`<rect x="${bx}" y="${y(b.v)}" width="${bw}" height="${y(0)-y(b.v)}" rx="3" fill="${b.color}"><title>${esc(gr.label)}: ${b.v}</title></rect><text x="${bx+bw/2}" y="${y(b.v)-4}" text-anchor="middle" font-size="10" fill="var(--muted)">${b.v}</text>`});
+    g+=`<text x="${pl+i*gw+gw/2}" y="${h-8}" text-anchor="middle" font-size="11" fill="var(--muted)">${esc(gr.label)}</text>`});
+  if(avg)g+=`<line x1="${pl}" x2="${w-pr}" y1="${y(avg)}" y2="${y(avg)}" stroke="var(--ink)" stroke-dasharray="5 4"/><text x="${w-pr}" y="${y(avg)-5}" text-anchor="end" font-size="11" fill="var(--ink)">avg ${avg}</text>`;
+  return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Bar chart">${g}</svg>`;
+}
+
+/* ---------- views ---------- */
+const NAV=[
+  ['Overview',[['dashboard','Project overview']]],
+  ['Plan',[['roadmap','Roadmap'],['gantt','Timeline'],['milestones','Milestones']]],
+  ['Execute',[['backlog','Backlog'],['planning','Sprint planning'],['board','Sprint board'],['retro','Retrospectives']]],
+  ['Track',[['tickets','Bugs & requests'],['capacity','Team capacity'],['risks','Risks'],['flow','Flow metrics'],['reports','Reports']]],
+  ['Coaches',[['scrum','Scrum Master'],['agile','Agile Coach'],['lss','Lean Six Sigma']]]
+];
+const VIEWS={dashboard:vDash,roadmap:vRoadmap,gantt:vGantt,milestones:vMilestones,backlog:vBacklog,planning:vPlanning,board:vBoard,retro:vRetro,tickets:vTickets,capacity:vCapacity,risks:vRisks,flow:vFlow,reports:vReports,
+  scrum:()=>vAgent('scrum'),agile:()=>vAgent('agile'),lss:()=>vAgent('lss')};
+
+function head(title,desc,actions=''){return `<div class="viewhead"><div><h1>${esc(title)}</h1>${desc?`<p>${desc}</p>`:''}</div><span class="sp"></span>${actions}</div>`}
+
+function sprintPulse(s){
+  const ts=sprintTickets(s.id),total=pts(ts),done=pts(ts.filter(isDone)),len=diff(s.start,s.end)+1;
+  const day=Math.min(len,Math.max(0,diff(s.start,TODAY)+1)),b=burn(s),committed=+s.committed||total;
+  const ideal=[...Array(len)].map((_,i)=>committed*(1-i/(len-1)));
+  const labels=[...Array(len)].map((_,i)=>fmtD(addDays(s.start,i)));
+  const cur=b.length?b[b.length-1]:total,exp=committed*(1-Math.max(0,b.length-1)/(len-1)),gap=Math.round(cur-exp),added=total-committed;
+  let sig,cls;
+  if(!b.length){sig='This sprint hasn’t reached its first day yet.';cls='ok'}
+  else if(gap>Math.max(3,committed*.12)){sig=`${plural(gap,'point')} behind the ideal line with ${plural(len-day,'day')} left.`;cls='bad'}
+  else if(gap>0){sig=`Slightly behind: ${plural(gap,'point')} above the ideal line.`;cls='warn'}
+  else {sig='On pace to finish the sprint commitment.';cls='ok'}
+  if(added>0)sig+=` Scope grew by ${plural(added,'point')} since it started.`;
+  return {ts,total,done,len,day,b,committed,ideal,labels,sig,cls};
+}
+function attentionItems(){
+  const out=[],a=activeSprint();
+  const crit=tickets().filter(t=>t.type==='bug'&&t.severity==='critical'&&!isDone(t));
+  crit.forEach(t=>out.push(['bad',`Critical bug: ${t.title}`,t.status==='triage'?'Still in triage':(t.assignee?'Assigned to '+member(t.assignee)?.name:'Unassigned'),'ticket',t.id]));
+  S.milestones.forEach(m=>{const r=msStatus(m);if(r.cls==='bad'||r.cls==='warn')out.push([r.cls,`${m.title} is ${r.st.toLowerCase()}`,r.f.date?`Forecast ${fmtD(r.f.date)} vs. target ${fmtD(m.date)}`:`Target ${fmtD(m.date)}`,'milestone',m.id])});
+  if(a){
+    sprintTickets(a.id).filter(t=>!isDone(t)&&blockers(t).length).forEach(t=>out.push(['warn',`${t.key} is blocked`,`Waiting on ${blockers(t).map(b=>b.key).join(', ')}`,'ticket',t.id]));
+    S.members.forEach(m=>{const as=pts(sprintTickets(a.id).filter(t=>t.assignee===m.id)),c=memberAvail(m,a);if(as>c)out.push(['warn',`${m.name} is overbooked`,`${as} points assigned, ${c} available this sprint`,'go','planning'])});
+    const un=sprintTickets(a.id).filter(t=>!t.assignee&&!isDone(t));if(un.length)out.push(['warn',`${plural(un.length,'sprint ticket')} unassigned`,un.map(t=>t.key).join(', '),'go','board']);
+  }
+  tickets().filter(t=>!isDone(t)&&t.due&&t.due<TODAY&&t.status!=='triage').forEach(t=>out.push(['warn',`${t.key} is overdue`,`Was due ${fmtD(t.due)}`,'ticket',t.id]));
+  const tri=tickets().filter(t=>t.status==='triage').length;if(tri)out.push(['',`${plural(tri,'item')} waiting in triage`,'Review new bugs and feature requests','go','tickets']);
+  const rank={bad:0,warn:1,'':2};return out.sort((x,y)=>rank[x[0]]-rank[y[0]]);
+}
+function projectHealth(){
+  if(!tickets().length&&!S.milestones.length)return ['','Not started'];
+  const a=activeSprint(),p=a?sprintPulse(a):null,st=S.milestones.map(msStatus);
+  if(st.some(r=>r.cls==='bad')||(p&&p.cls==='bad'))return ['bad','Off track'];
+  if(st.some(r=>r.cls==='warn')||(p&&p.cls==='warn'))return ['warn','At risk'];
+  return ['ok','On track'];
+}
+function vDash(){
+  const a=activeSprint(),v=velocity(),[hcls,hl]=projectHealth();
+  const all=tickets().filter(t=>t.status!=='triage'),totP=pts(all),doneP=pts(all.filter(isDone)),pct=totP?Math.round(doneP/totP*100):0;
+  const msSorted=[...S.milestones].sort((x,y)=>x.date<y.date?-1:1),final=msSorted[msSorted.length-1];
+  const first=[...S.sprints.map(s=>s.start),...S.epics.map(e=>e.start),TODAY].sort()[0];
+  const openT=tickets().filter(t=>!isDone(t)&&t.status!=='triage').length;
+  // milestone strip
+  let strip='';
+  if(msSorted.length){const end=addDays(final.date,Math.max(3,Math.round(diff(first,final.date)*.04))),tot=Math.max(1,diff(first,end)),P=d=>Math.max(0,Math.min(100,diff(first,d)/tot*100));
+    strip=`<div class="mstrip"><div class="mtrack"><i style="width:${P(TODAY)}%"></i></div><span class="mtoday" style="left:${P(TODAY)}%"><b>Today</b></span>${msSorted.map((m,i)=>{const r=msStatus(m);return `<button class="mpt ${r.cls}" style="left:${P(m.date)}%" data-act="milestone" data-id="${m.id}" aria-label="${esc(m.title)}"></button><div class="mlab ${i%2?'dn':'up'}" style="left:${P(m.date)}%"><b>${esc(m.title)}</b><span>${fmtD(m.date)}, ${r.st}</span></div>`}).join('')}</div>`}
+  const att=attentionItems();
+  const attHtml=att.length?`<ul class="list1">${att.slice(0,8).map(([c,t,sub,act,id])=>`<li><span class="dot" style="background:${c==='bad'?'var(--bad)':c==='warn'?'var(--warn)':'var(--muted)'}"></span><div class="sp"><button class="link" data-act="${act}" ${act==='go'?`data-v="${id}"`:`data-id="${id}"`}><b>${esc(t)}</b></button><div class="small muted">${esc(sub)}</div></div></li>`).join('')}</ul>${att.length>8?`<p class="small muted" style="margin-top:8px">${plural(att.length-8,'more item')} not shown.</p>`:''}`:'<p class="muted">Nothing needs attention right now.</p>';
+  const epics=[...S.epics].sort((x,y)=>x.start<y.start?-1:1).map(e=>{const p=epicProgress(e);return `<li><span class="dot" style="background:${esc(e.color)}"></span><div class="sp"><div class="small" style="display:flex;justify-content:space-between;gap:8px"><button class="link" data-act="epic" data-id="${e.id}"><b>${esc(e.title)}</b></button><span class="muted">${p.pct}%, ends ${fmtD(e.end)}</span></div>${meter(p.done,p.tot||1)}</div></li>`}).join('');
+  let sprintCard;
+  if(a){const p=sprintPulse(a);
+    sprintCard=`<section class="panel"><div class="phead"><div><h2>${esc(a.name)}: day ${p.day} of ${p.len}</h2><p class="small muted">${esc(a.goal||'No sprint goal set')}</p></div><button class="btn sm ghost" data-act="go" data-v="board">Sprint board</button></div>
+      ${svgLine({w:560,h:190,labels:p.labels,series:[{vals:p.ideal,color:'var(--muted)',dash:true,name:'Ideal'},{vals:p.b,color:'var(--accent)',dots:true,name:'Remaining'}],ymax:Math.max(p.committed,...p.b,1)})}
+      ${legend([['var(--accent)','Points remaining'],['var(--muted)','Ideal burndown',1]])}<p class="signal ${p.cls}">${esc(p.sig)} ${p.done} of ${p.total} points done.</p></section>`;
+  } else sprintCard=`<section class="panel"><h2>No sprint is running</h2><p class="muted" style="margin:6px 0 14px">Plan the next sprint from the backlog, then start it to track burndown.</p><button class="btn pri" data-act="go" data-v="planning">Plan a sprint</button></section>`;
+  const team=S.members.map(m=>{const as=a?pts(sprintTickets(a.id).filter(t=>t.assignee===m.id)):0,c=a?memberAvail(m,a):+m.capacity||0;return `<li>${av(m.id)}<div class="sp"><div class="small" style="display:flex;justify-content:space-between;gap:8px"><span>${esc(m.name)} <span class="muted">${esc(m.role||'')}</span></span>${a?`<span class="muted">${as} / ${c} pts</span>`:''}</div>${a?meter(as,c):''}</div></li>`}).join('');
+  const risks=S.risks.filter(r=>r.status!=='closed').map(r=>({...r,score:r.likelihood*r.impact})).sort((x,y)=>y.score-x.score).slice(0,4);
+  return `<section class="panel ovhero">
+    <div class="ovtop"><div><p class="small muted">Project overview</p><h1 class="ovname">${esc(S.project.name)}</h1>${S.project.desc?`<p class="ovdesc">${esc(S.project.desc)}</p>`:`<p class="ovdesc muted"><button class="link" data-act="settings">Add a one-line project objective</button></p>`}</div>
+    <div class="ovhealth ${hcls}"><span>Project health</span><b>${hl}</b></div></div>
+    <div class="ovstats"><div><b>${pct}%</b><span>of ${totP} points complete</span></div><div><b>${final?fmtD(final.date):'—'}</b><span>${final?`${esc(final.title)}, ${diff(TODAY,final.date)>=0?plural(diff(TODAY,final.date),'day')+' away':'passed'}`:'No target date yet'}</span></div><div><b>${v||'—'}</b><span>points per sprint, recent average</span></div><div><b>${openT}</b><span>open tickets</span></div><div><b>${S.members.length}</b><span>people on the team</span></div></div>
+    ${strip||`<p class="muted" style="margin-top:18px"><button class="btn sm" data-act="new-milestone">Add a milestone</button> to see the path to launch.</p>`}
+  </section>
+  <div class="ovgrid">
+    <section class="panel"><div class="phead"><h2>Needs attention</h2><span class="chip ${att.some(x=>x[0]==='bad')?'bad':att.length?'warn':'ok'}">${att.length}</span></div>${attHtml}</section>
+    ${sprintCard}
+    <section class="panel"><div class="phead"><h2>Epics</h2><button class="btn sm ghost" data-act="go" data-v="roadmap">Roadmap</button></div>${epics?`<ul class="list1">${epics}</ul>`:'<p class="muted">No epics yet. <button class="link" data-act="new-epic" style="color:var(--accent)">Add one</button></p>'}</section>
+    <section class="panel"><div class="phead"><h2>Team</h2><button class="btn sm ghost" data-act="go" data-v="capacity">Capacity</button></div>${team?`<ul class="list1">${team}</ul>`:'<p class="muted">No teammates yet. <button class="link" data-act="new-member" style="color:var(--accent)">Add one</button></p>'}</section>
+    <section class="panel"><div class="phead"><h2>Top risks</h2><button class="btn sm ghost" data-act="go" data-v="risks">Risk log</button></div>${risks.length?`<ul class="list1">${risks.map(r=>`<li><span class="chip ${r.score>=6?'bad':r.score>=3?'warn':'ok'}">${r.score}</span><div class="sp"><button class="link" data-act="risk" data-id="${r.id}">${esc(r.title)}</button><div class="small muted">${esc((RAID.find(x=>x[0]===r.kind)||[,'Risk'])[1])}${r.owner&&member(r.owner)?', owned by '+esc(member(r.owner).name):''}</div></div></li>`).join('')}</ul>`:'<p class="muted">No open risks logged.</p>'}</section>
+  </div>`;
+}
+function vRoadmap(){
+  const act=`<button class="btn" data-act="new-milestone">Add milestone</button><button class="btn pri" data-act="new-epic">Add epic</button>`;
+  if(!S.epics.length)return head('Roadmap','Epics laid out over time, with milestones on top.',act)+`<div class="panel empty">No epics yet. Add an epic to start shaping the roadmap.</div>`;
+  const dates=[...S.epics.flatMap(e=>[e.start,e.end]),...S.milestones.map(m=>m.date),TODAY].filter(Boolean).sort();
+  let a=dates[0],b=dates[dates.length-1];a=a.slice(0,8)+'01';const bd=parse(b);b=iso(new Date(bd.getFullYear(),bd.getMonth()+1,0));
+  const total=diff(a,b)+1,pct=d=>Math.max(0,Math.min(100,diff(a,d)/total*100));
+  let months='';{let d=a;while(d<=b){const dt=parse(d);months+=`<div class="mline" style="left:${pct(d)}%"></div><div class="mlabel" style="left:${pct(d)}%">${dt.toLocaleDateString(undefined,{month:'short'})}${dt.getMonth()===0||d===a?' '+dt.getFullYear():''}</div>`;d=iso(new Date(dt.getFullYear(),dt.getMonth()+1,1))}}
+  const lines=months.replace(/<div class="mlabel[^>]*>[^<]*<\/div>/g,'');
+  const tl=TODAY>=a&&TODAY<=b?`<div class="today" style="left:${pct(TODAY)}%" title="Today"></div>`:'';
+  const msRow=`<div class="rrow"><div class="rlabel"><b>Milestones</b></div><div class="rtrack" style="min-height:58px">${lines}${tl}${S.milestones.map(m=>{const r=msStatus(m);return `<button class="diamond ${r.cls==='bad'?'bad':r.cls==='ok'&&r.st==='Complete'?'ok':''}" style="left:${pct(m.date)}%" data-act="milestone" data-id="${m.id}" title="${esc(m.title)}: ${fmtD(m.date)}, ${r.st}" aria-label="${esc(m.title)}"></button><span class="dlabel" style="left:${pct(m.date)}%">${esc(m.title)}</span>`}).join('')}</div></div>`;
+  const rows=[...S.epics].sort((x,y)=>x.start<y.start?-1:1).map(e=>{const p=epicProgress(e),ms=byId(S.milestones,e.milestoneId);const late=ms&&e.end>ms.date;
+    return `<div class="rrow"><div class="rlabel"><button class="link" data-act="epic" data-id="${e.id}"><b>${esc(e.title)}</b></button><div class="small muted">${fmtD(e.start)} to ${fmtD(e.end)}, ${p.pct}% done${late?` <span class="chip bad">Ends after ${esc(ms.title)}</span>`:''}</div></div>
+    <div class="rtrack">${lines}${tl}<button class="rbar" style="--ec:${esc(e.color)};left:${pct(e.start)}%;width:${Math.max(1,(diff(e.start,e.end)+1)/total*100)}%" data-act="epic" data-id="${e.id}" title="${esc(e.title)}: ${p.done} of ${p.tot} points done"><i style="width:${p.pct}%"></i><span>${esc(e.title)}</span></button></div></div>`}).join('');
+  return head('Roadmap','Epics laid out over time. The filled part of each bar is completed points; red diamonds are milestones forecast to slip.',act)+
+    `<div class="panel roadwrap"><div class="road"><div class="rrow rhead"><div></div><div class="rtrack">${months}</div></div>${msRow}${rows}</div></div>`;
+}
+
+/* critical path: backward pass over the dependency graph using scheduled dates; slack = days a ticket's due date can move before the finish moves */
+function cpm(dated){
+  const by=Object.fromEntries(dated.map(t=>[t.id,t])),succ={};
+  dated.forEach(t=>(t.deps||[]).forEach(p=>{if(by[p]&&p!==t.id)(succ[p]=succ[p]||[]).push(t.id)}));
+  const end=dated.reduce((m,t)=>t.due>m?t.due:m,dated[0].due),lf={},seen={};
+  const LF=id=>{if(lf[id]!=null)return lf[id];if(seen[id])return end;seen[id]=1;let v=end;
+    (succ[id]||[]).forEach(s=>{const st=by[s],c=addDays(LF(s),-diff(st.start,st.due)-1);if(c<v)v=c});return lf[id]=v};
+  const slack={};dated.forEach(t=>slack[t.id]=diff(t.due,LF(t.id)));
+  return {slack,end};
+}
+function vGantt(){
+  const z=UI.gZoom,B=UI.gBase&&S.baseline?S.baseline.items:null;
+  const tog=(act,on,l,tip)=>`<button class="btn sm ${on?'pri':''}" data-act="${act}" aria-pressed="${!!on}" title="${tip}">${l}</button>`;
+  const zoom=`<div class="filters" style="margin:0">${[[12,'Quarter'],[22,'Month'],[36,'Week']].map(([v,l])=>`<button class="btn sm ${z===v?'pri':''}" data-act="gzoom" data-z="${v}">${l}</button>`).join('')}</div>
+    <div class="filters" style="margin:0">${tog('gcrit',UI.gCrit,'Critical path','Outline tickets with no slack')}${S.baseline?tog('gbase',UI.gBase,'Baseline','Compare against the saved baseline'):''}<button class="btn sm" data-act="gbase-save" title="Snapshot every ticket’s current dates">${S.baseline?'Re-baseline':'Save baseline'}</button></div><button class="btn pri" data-act="new-ticket">New ticket</button>`;
+  const dated=tickets().filter(t=>t.start&&t.due&&t.status!=='triage');
+  if(!dated.length)return head('Timeline','A Gantt view of every ticket with a start and due date.',zoom)+`<div class="panel empty">No tickets have dates yet. Give a ticket a start and due date to see it here.</div>`;
+  const ms=[...S.milestones].filter(m=>m.date).sort((a,b)=>a.date<b.date?-1:1);
+  let min=dated.reduce((m,t)=>t.start<m?t.start:m,dated[0].start),max=dated.reduce((m,t)=>t.due>m?t.due:m,dated[0].due);
+  if(B)dated.forEach(t=>{const b=B[t.id];if(b){if(b[0]<min)min=b[0];if(b[1]>max)max=b[1]}});
+  ms.forEach(m=>{if(m.date<min)min=m.date;if(m.date>max)max=m.date});
+  if(TODAY<min)min=TODAY;min=addDays(min,-3);max=addDays(max,6);
+  const days=diff(min,max)+1,LW=250,RH=35,HH=(ms.length?3:2)*27,W=days*z;
+  const cp=cpm(dated),crit=t=>UI.gCrit&&!isDone(t)&&cp.slack[t.id]<=0;
+  const groups=[...S.epics.map(e=>({e,ts:dated.filter(t=>t.epicId===e.id)})),{e:null,ts:dated.filter(t=>!t.epicId||!byId(S.epics,t.epicId))}].filter(g=>g.ts.length);
+  const rows=[];groups.forEach(g=>{g.ts.sort((a,b)=>a.start<b.start?-1:a.start>b.start?1:byRank(a,b));rows.push({kind:'epic',e:g.e,ts:g.ts});g.ts.forEach(t=>rows.push({kind:'t',t}))});
+  const rowIdx={};rows.forEach((r,i)=>{if(r.kind==='t')rowIdx[r.t.id]=i});
+  let sprH='',dayH='';
+  S.sprints.forEach(s=>{if(s.end<min||s.start>max)return;const l=Math.max(0,diff(min,s.start))*z,r=(Math.min(days-1,diff(min,s.end))+1)*z;sprH+=`<div class="gsprint" style="left:${l}px;width:${r-l}px" title="${esc(s.name)}">${esc(s.name)}</div>`});
+  for(let i=0;i<days;i++){const d=addDays(min,i),dt=parse(d),we=dt.getDay()===0||dt.getDay()===6;const show=z>=30||dt.getDay()===1;dayH+=`<div class="gday${we?' we':''}" style="left:${i*z}px;width:${z}px">${show?(z>=30?dt.getDate():fmtD(d)):''}</div>`}
+  const X=d=>LW+diff(min,d)*z;
+  let conflicts=0,body='';
+  rows.forEach(r=>{
+    if(r.kind==='epic'){const s=r.ts.reduce((m,t)=>t.start<m?t.start:m,r.ts[0].start),e=r.ts.reduce((m,t)=>t.due>m?t.due:m,r.ts[0].due);
+      body+=`<div class="grow epic"><div class="glabel">${r.e?`<span class="dot" style="background:${esc(r.e.color)}"></span><button class="link ttl" data-act="epic" data-id="${r.e.id}">${esc(r.e.title)}</button>`:'<span class="ttl">No epic</span>'}</div><div class="gtrack" style="width:${W}px"><div class="gsum" style="--ec:${r.e?esc(r.e.color):'var(--muted)'};left:${diff(min,s)*z}px;width:${(diff(s,e)+1)*z}px"></div></div></div>`}
+    else{const t=r.t,late=!isDone(t)&&t.due<TODAY,cr=crit(t),b=B&&B[t.id],slip=b?diff(b[1],t.due):0,sl=cp.slack[t.id];
+      const slTip=isDone(t)?'':sl>0?`, ${plural(sl,'day')} of slack`:sl<0?`, ${plural(-sl,'day')} behind what its successors need`:', no slack (critical)';
+      body+=`<div class="grow"><div class="glabel"><span class="key">${esc(t.key)}</span><button class="link ttl" data-act="ticket" data-id="${t.id}" title="${esc(t.title)}">${esc(t.title)}</button><span class="sp" style="flex:1"></span>${slip?`<span class="chip ${slip>0?'bad':'ok'}" title="Due date ${slip>0?'slipped':'pulled in'} ${plural(Math.abs(slip),'day')} against the baseline">${slip>0?'+':''}${slip}d</span>`:''}${av(t.assignee)}</div><div class="gtrack" style="width:${W}px">${b?`<div class="gbase" style="left:${diff(min,b[0])*z}px;width:${Math.max(4,(diff(b[0],b[1])+1)*z-2)}px" title="Baseline: ${fmtD(b[0])} to ${fmtD(b[1])}"></div>`:''}<div class="gbar s-${t.status}${late?' late':''}${cr?' crit':''}" data-gid="${t.id}" style="left:${diff(min,t.start)*z}px;width:${(diff(t.start,t.due)+1)*z-2}px" title="${esc(t.key+' '+t.title)}: ${fmtD(t.start)} to ${fmtD(t.due)}${late?' (overdue)':''}${slTip}">${esc(t.key)}<i class="grip" aria-hidden="true"></i></div></div></div>`}
+  });
+  let svg='';
+  S.sprints.forEach(s=>{if(s.start>=min&&s.start<=max)svg+=`<line x1="${X(s.start)}" x2="${X(s.start)}" y1="0" y2="${HH+rows.length*RH}" stroke="var(--muted)" stroke-opacity=".35"/>`});
+  ms.forEach(m=>{svg+=`<line x1="${X(m.date)+z/2}" x2="${X(m.date)+z/2}" y1="27" y2="${HH+rows.length*RH}" stroke="var(--ink)" stroke-opacity=".45" stroke-dasharray="3 4"/>`});
+  if(TODAY>=min&&TODAY<=max)svg+=`<line x1="${X(TODAY)+z/2}" x2="${X(TODAY)+z/2}" y1="0" y2="${HH+rows.length*RH}" stroke="var(--bad)" stroke-width="2"/>`;
+  dated.forEach(t=>(t.deps||[]).forEach(pid=>{const p=T[pid];if(!p||rowIdx[pid]==null||rowIdx[t.id]==null)return;
+    const bad=t.start<=p.due&&!isDone(p);if(bad)conflicts++;const cl=!bad&&crit(p)&&crit(t);
+    const x1=X(p.due)+z-2,y1=HH+rowIdx[pid]*RH+17,x2=X(t.start),y2=HH+rowIdx[t.id]*RH+17,mid=Math.max(x1+8,Math.min(x2-8,x1+8));
+    svg+=`<path d="M${x1} ${y1} H${mid} V${y2} H${x2-2}" fill="none" stroke="${bad?'var(--bad)':cl?'var(--warn)':'var(--muted)'}" stroke-width="${cl?2:1.6}" marker-end="url(#${bad?'arB':cl?'arC':'arA'})"/>`}));
+  const mk=(id,c)=>`<marker id="${id}" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8z" fill="${c}"/></marker>`;
+  const defs=`<defs>${mk('arA','var(--muted)')}${mk('arB','var(--bad)')}${mk('arC','var(--warn)')}</defs>`;
+  let note=conflicts?`<p class="signal bad" style="margin:0 0 12px">${plural(conflicts,'dependency conflict')}: a ticket starts before the ticket blocking it is due. Conflicting links are drawn in red.</p>`:'';
+  const nCrit=dated.filter(crit).length;
+  if(nCrit)note+=`<p class="small muted" style="margin:0 0 10px"><b style="color:var(--warn)">Critical path:</b> ${plural(nCrit,'open ticket')} with no slack ${nCrit===1?'drives':'drive'} the ${fmtD(cp.end)} finish, so any delay to ${nCrit===1?'it':'them'} moves the end date. Each bar’s tooltip shows its slack.</p>`;
+  if(B){const sl=dated.filter(t=>B[t.id]&&diff(B[t.id][1],t.due)>0),bEnd=Object.values(B).reduce((m,b)=>b[1]>m?b[1]:m,''),mv=bEnd?diff(bEnd,cp.end):0;
+    note+=`<p class="signal ${sl.length||mv>0?'warn':'ok'}" style="margin:0 0 12px">Baseline from ${fmtD(S.baseline.at)}: ${sl.length?`${plural(sl.length,'ticket')} slipped`:'no tickets slipped'}, and the finish ${mv>0?`moved out ${plural(mv,'day')}`:mv<0?`moved in ${plural(-mv,'day')}`:'hasn’t moved'}. The gray line under each bar marks its baseline dates.</p>`}
+  const msH=ms.map(m=>{const r=msStatus(m),l=diff(min,m.date)*z+z/2;return `<button class="diamond ${r.cls==='bad'?'bad':r.st==='Complete'?'ok':''}" style="left:${l}px" data-act="milestone" data-id="${m.id}" title="${esc(m.title)}: ${fmtD(m.date)}, ${r.st}" aria-label="${esc(m.title)}"></button><span class="dl" style="left:${l}px">${esc(m.title)}</span>`}).join('');
+  return head('Timeline','Drag a bar to reschedule it, or drag its right edge to change the due date. Arrows show what blocks what; amber outlines mark the critical path.',zoom)+note+
+   `<div class="gscroll"><div class="gantt" style="width:${LW+W}px"><div class="grow ghdr"><div class="glabel">Sprints</div><div class="gtrack" style="width:${W}px">${sprH}</div></div>${ms.length?`<div class="grow ghdr gms"><div class="glabel">Milestones</div><div class="gtrack" style="width:${W}px">${msH}</div></div>`:''}<div class="grow ghdr"><div class="glabel">Ticket</div><div class="gtrack" style="width:${W}px">${dayH}</div></div>${body}<svg class="gover" width="${LW+W}" height="${HH+rows.length*RH}">${defs}${svg}</svg></div></div>`;
+}
+
+function tRow(t){
+  const opts=[['','Backlog'],...sortedSprints().filter(s=>s.status!=='closed'||s.id===t.sprintId).map(s=>[s.id,s.name])];
+  const bl=blockers(t).length;
+  return `<div class="trow" draggable="true" data-drag="${t.id}" data-rowid="${t.id}">
+    <span class="handle" aria-hidden="true">⋮⋮</span><span class="key">${esc(t.key)}</span>
+    <span class="ttl">${ttag(t)} <button class="link" data-act="ticket" data-id="${t.id}">${esc(t.title)}</button>${bl?` <span class="blocked">Blocked</span>`:''}${isDone(t)?' <span class="chip ok">Done</span>':''}</span>
+    ${epicChip(t.epicId)||'<span></span>'}${pri(t.priority)}<span class="pts" title="Story points">${+t.points||0}</span>${av(t.assignee)}
+    <select data-chg="move-sprint" data-id="${t.id}" aria-label="Sprint for ${esc(t.key)}">${opts.map(([v,l])=>`<option value="${v}"${(t.sprintId||'')===v?' selected':''}>${esc(l)}</option>`).join('')}</select></div>`;
+}
+function matchQ(t,q){if(!q)return true;q=q.toLowerCase();return (t.title+' '+t.key+' '+(t.labels||'')).toLowerCase().includes(q)}
+function vBacklog(){
+  const q=UI.bq,act=activeSprint();
+  const secs=sortedSprints().filter(s=>s.status!=='closed');
+  const tri=tickets().filter(t=>t.status==='triage').length;
+  const sec=s=>{const ts=sprintTickets(s.id).sort(byRank),c=sprintCap(s),p=pts(ts);
+    const btn=s.status==='active'?`<button class="btn sm" data-act="complete-sprint" data-id="${s.id}">Complete sprint</button>`:(!act&&s===secs.find(x=>x.status==='planned')?`<button class="btn sm pri" data-act="start-sprint" data-id="${s.id}">Start sprint</button>`:'');
+    const shown=ts.filter(t=>matchQ(t,q));
+    return `<section class="panel bsec" data-drop="sprint:${s.id}"><div class="bhead"><h2>${esc(s.name)}</h2>${s.status==='active'?'<span class="chip acc">Active</span>':''}<span class="small muted">${fmtD(s.start)} to ${fmtD(s.end)}</span><span class="sp"></span><span class="small ${p>c?'':'muted'}" style="${p>c?'color:var(--bad);font-weight:600':''}">${p} / ${c} pts</span>${meter(p,c)}<button class="btn sm ghost" data-act="sprint" data-id="${s.id}">Edit</button>${btn}</div>
+    ${shown.length?shown.map(tRow).join(''):`<div class="empty">${ts.length?'No matches in this sprint.':'Drag tickets here to plan this sprint.'}</div>`}</section>`};
+  const bl=tickets().filter(t=>!t.sprintId&&t.status!=='triage'&&!isDone(t)).sort(byRank),shown=bl.filter(t=>matchQ(t,q));
+  return head('Backlog','Rank work by dragging rows. Drop a ticket on a sprint to plan it, or use the sprint menu on each row.',`<button class="btn" data-act="new-sprint">New sprint</button><button class="btn pri" data-act="new-ticket">New ticket</button>`)+
+   `<div class="filters"><input id="bq" type="search" placeholder="Filter by title, key, or label" value="${esc(q)}" data-chg="bq" aria-label="Filter backlog">${tri?`<button class="btn sm ghost" data-act="go" data-v="tickets">${plural(tri,'item')} waiting in triage</button>`:''}</div>
+   <div class="stack">${secs.map(sec).join('')}
+   <section class="panel bsec" data-drop="backlog"><div class="bhead"><h2>Backlog</h2><span class="small muted">${plural(bl.length,'ticket')}, ${pts(bl)} pts</span><span class="sp"></span><button class="btn sm ghost" data-act="new-ticket">Add ticket</button></div>
+   ${shown.length?shown.map(tRow).join(''):`<div class="empty">${bl.length?'No matches.':'The backlog is empty. Add a ticket or accept items from triage.'}</div>`}</section></div>`;
+}
+
+function vBoard(){
+  const s=activeSprint();
+  if(!s)return head('Sprint board','Cards for the running sprint, by status.')+`<div class="panel empty">No sprint is running. <button class="btn pri" data-act="go" data-v="planning" style="margin-left:8px">Plan a sprint</button></div>`;
+  const who=UI.boardWho,all=sprintTickets(s.id),ts=all.filter(t=>!who||(who==='none'?!t.assignee:t.assignee===who)).sort(byRank);
+  const wip=Math.max(1,S.members.length);
+  const cols=[['todo','To do'],['inprogress','In progress'],['review','In review'],['done','Done']];
+  const colOf=t=>t.status==='backlog'||t.status==='triage'?'todo':t.status;
+  const len=diff(s.start,s.end)+1,day=Math.min(len,Math.max(0,diff(s.start,TODAY)+1));
+  return head(s.name,`${esc(s.goal||'No sprint goal set')} Day ${day} of ${len}; ${pts(all.filter(isDone))} of ${pts(all)} points done.`,
+   `<select class="selectlike" data-chg="board-who" aria-label="Filter by assignee"><option value="">Everyone</option>${S.members.map(m=>`<option value="${m.id}"${who===m.id?' selected':''}>${esc(m.name)}</option>`).join('')}<option value="none"${who==='none'?' selected':''}>Unassigned</option></select><button class="btn" data-act="complete-sprint" data-id="${s.id}">Complete sprint</button><button class="btn pri" data-act="new-ticket" data-sprint="${s.id}">New ticket</button>`)+
+   `<div class="board">${cols.map(([k,l])=>{const c=ts.filter(t=>colOf(t)===k);const n=all.filter(t=>colOf(t)===k).length;
+     return `<div class="col" data-drop="status:${k}"><div class="colhead"><span>${l}</span><span class="wip ${k==='inprogress'&&n>wip?'bad':''}">${k==='inprogress'?`${n} / ${wip} WIP`:`${plural(n,'card')}, ${pts(all.filter(t=>colOf(t)===k))} pts`}</span></div>
+     ${c.map(t=>{const bl=blockers(t).length;return `<div class="card" draggable="true" data-drag="${t.id}" style="--c:${t.type==='bug'?'var(--bad)':t.type==='feature'?'var(--feat)':t.type==='task'?'var(--muted)':'var(--accent)'}"><div class="ctop"><span class="key">${esc(t.key)}</span>${pri(t.priority)}</div><div class="ctitle"><button class="link" data-act="ticket" data-id="${t.id}">${esc(t.title)}</button></div><div class="cfoot">${epicChip(t.epicId)}${bl?'<span class="blocked">Blocked</span>':''}<span class="sp"></span><span class="pts">${+t.points||0}</span>${av(t.assignee)}</div></div>`}).join('')||'<p class="muted small" style="padding:4px">Nothing here.</p>'}</div>`}).join('')}</div>`;
+}
+
+function vPlanning(){
+  const opts=sortedSprints().filter(s=>s.status!=='closed');
+  if(!opts.length)return head('Sprint planning','Size the next sprint against team capacity and recent velocity.',`<button class="btn pri" data-act="new-sprint">Create a sprint</button>`)+`<div class="panel empty">There are no open sprints. Create one to start planning.</div>`;
+  let s=byId(opts,UI.planSprint)||opts.find(x=>x.status==='planned')||opts[0];UI.planSprint=s.id;
+  const cap=sprintCap(s),v=velocity(),ts=sprintTickets(s.id).sort(byRank),p=pts(ts),scale=Math.max(cap,v,p,1)*1.15;
+  let rec,cls;
+  if(p>cap){rec=`Over capacity by ${plural(p-cap,'point')}. Move lower-ranked tickets back to the backlog.`;cls='bad'}
+  else if(v&&p>v*1.1){rec=`Above recent velocity (${v}). The team has capacity on paper, but history says this is a stretch.`;cls='warn'}
+  else if(v&&p<v*.8){rec=`Room for about ${plural(Math.min(v,cap)-p,'more point')} based on recent velocity.`;cls='warn'}
+  else if(!v&&!p){rec='Add tickets from the backlog, or fill to capacity automatically.';cls='warn'}
+  else {rec='This commitment looks realistic against capacity and velocity.';cls='ok'}
+  const wd=workdays(s.start,s.end);
+  const rows=S.members.map(m=>{const a=pts(ts.filter(t=>t.assignee===m.id)),c=memberAvail(m,s),off=(m.timeOff||{})[s.id]||0;
+    return `<tr><td>${av(m.id)} ${esc(m.name)}<div class="small muted">${esc(m.role||'')}</div></td><td class="num">${+m.capacity||0}</td><td class="num"><input type="number" min="0" max="${wd}" value="${off}" data-chg="timeoff" data-m="${m.id}" data-s="${s.id}" aria-label="Days off for ${esc(m.name)}" style="width:62px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--sunk);text-align:right"></td><td class="num">${c}</td><td class="num">${a}</td><td style="min-width:140px">${meter(a,c)}</td></tr>`}).join('');
+  const un=pts(ts.filter(t=>!t.assignee));
+  const act=activeSprint();
+  return head('Sprint planning','Size the sprint against what the team can actually take on. Capacity accounts for time off.',
+   `<select class="selectlike" data-chg="plan-sprint" aria-label="Sprint">${opts.map(o=>`<option value="${o.id}"${o.id===s.id?' selected':''}>${esc(o.name)}${o.status==='active'?' (active)':''}</option>`).join('')}</select><button class="btn" data-act="new-sprint">New sprint</button>`)+
+   `<div class="stack"><section class="panel"><div class="phead"><div><h2>${esc(s.name)}</h2><p class="small muted">${fmtD(s.start)} to ${fmtD(s.end)}, ${plural(wd,'working day')}. ${esc(s.goal||'No sprint goal yet.')}</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" data-act="sprint" data-id="${s.id}">Edit goal and dates</button><button class="btn sm" data-act="autofill" data-id="${s.id}">Fill from backlog</button>${s.status==='planned'&&!act?`<button class="btn sm pri" data-act="start-sprint" data-id="${s.id}">Start sprint</button>`:''}</div></div>
+     <div class="gauge"><i class="${p>cap?'over':''}" style="width:${p/scale*100}%"></i>${v?`<div class="gmark top" style="left:${v/scale*100}%"><span>Velocity ${v}</span></div>`:''}<div class="gmark bot" style="left:${cap/scale*100}%"><span>Capacity ${cap}</span></div></div>
+     <p><b style="font-size:1.3rem">${p}</b> <span class="muted">points committed across ${plural(ts.length,'ticket')}</span></p><p class="signal ${cls}">${esc(rec)}</p></section>
+   <div class="grid2"><section class="panel"><h2>Capacity by teammate</h2><div class="tblwrap"><table><thead><tr><th>Teammate</th><th class="num">Pts/sprint</th><th class="num">Days off</th><th class="num">Available</th><th class="num">Assigned</th><th>Load</th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="muted">Add teammates on the Team capacity page.</td></tr>'}${un?`<tr><td class="muted">Unassigned</td><td></td><td></td><td></td><td class="num">${un}</td><td></td></tr>`:''}</tbody></table></div></section>
+   <section class="panel bsec" data-drop="sprint:${s.id}" style="align-self:start"><div class="bhead"><h2>In this sprint</h2><span class="sp"></span><button class="btn sm ghost" data-act="go" data-v="backlog">Open backlog</button></div>${ts.length?ts.map(tRow).join(''):'<div class="empty">No tickets yet.</div>'}</section></div></div>`;
+}
+
+function vTickets(){
+  const f=UI.tf;
+  let ts=tickets().filter(t=>t.type==='bug'||t.type==='feature');
+  const tri=ts.filter(t=>t.status==='triage'),bugs=ts.filter(t=>t.type==='bug'&&!isDone(t)),feats=ts.filter(t=>t.type==='feature'&&!isDone(t));
+  const top=[...feats].sort((a,b)=>(b.votes||0)-(a.votes||0))[0];
+  if(f.type!=='all')ts=ts.filter(t=>t.type===f.type);
+  if(f.status==='open')ts=ts.filter(t=>!isDone(t));else if(f.status==='triage')ts=ts.filter(t=>t.status==='triage');else if(f.status==='done')ts=ts.filter(isDone);
+  ts=ts.filter(t=>matchQ(t,f.q));
+  const so={critical:0,major:1,minor:2,trivial:3};
+  ts.sort((a,b)=>(a.status==='triage'?0:1)-(b.status==='triage'?0:1)||a.priority.localeCompare(b.priority)||(so[a.severity]??4)-(so[b.severity]??4)||(b.votes||0)-(a.votes||0));
+  const sel=(k,o)=>`<select data-chg="tf" data-k="${k}" aria-label="${k}">${o.map(([v,l])=>`<option value="${v}"${f[k]===v?' selected':''}>${l}</option>`).join('')}</select>`;
+  return head('Bugs & requests','Intake for bug reports and feature requests. Triage new items into the backlog; votes help rank requests.',`<button class="btn" data-act="new-ticket" data-type="feature">Request a feature</button><button class="btn pri" data-act="new-ticket" data-type="bug">Report a bug</button>`)+
+   `<div class="tiles"><div class="tile"><b>${tri.length}</b><span>waiting in triage</span></div><div class="tile"><b>${bugs.filter(b=>b.severity==='critical').length}</b><span>critical bugs open</span></div><div class="tile"><b>${bugs.length}</b><span>bugs open</span></div><div class="tile"><b>${feats.length}</b><span>open feature requests</span></div>${top?`<div class="tile"><b>${top.votes||0}</b><span>votes for the top request: ${esc(top.title)}</span></div>`:''}</div>
+   <div class="filters">${sel('type',[['all','Bugs and requests'],['bug','Bugs'],['feature','Feature requests']])}${sel('status',[['open','Open'],['triage','In triage'],['done','Done'],['all','All statuses']])}<input id="tq" type="search" placeholder="Search" value="${esc(f.q)}" data-chg="tq" aria-label="Search bugs and requests"></div>
+   <div class="panel tblwrap" style="padding:4px 8px"><table><thead><tr><th>Key</th><th>Type</th><th>Title</th><th>Severity or votes</th><th>Priority</th><th>Status</th><th>Reported by</th><th>Filed</th><th></th></tr></thead><tbody>
+   ${ts.map(t=>`<tr><td class="key">${esc(t.key)}</td><td>${ttag(t)}</td><td><button class="link" data-act="ticket" data-id="${t.id}">${esc(t.title)}</button></td><td>${t.type==='bug'?sevChip(t.severity):`<span class="chip feat">${+t.votes||0} votes</span>`}</td><td>${pri(t.priority)}</td><td><span class="chip ${t.status==='triage'?'warn':isDone(t)?'ok':''}">${STL[t.status]}</span></td><td class="small">${esc(t.reporter||'—')}</td><td class="small muted">${fmtD(t.createdAt)}</td>
+   <td style="white-space:nowrap">${t.status==='triage'?`<button class="btn sm pri" data-act="accept" data-id="${t.id}">Accept to backlog</button>`:''}${t.type==='feature'&&!isDone(t)?` <button class="btn sm" data-act="vote" data-id="${t.id}" aria-label="Add a vote">+1</button>`:''}</td></tr>`).join('')||'<tr><td colspan="9" class="empty">Nothing matches these filters.</td></tr>'}
+   </tbody></table></div>`;
+}
+
+function vCapacity(){
+  const sp=sortedSprints().filter(s=>s.status!=='closed');
+  const rows=S.members.map(m=>`<tr><td>${av(m.id)} <button class="link" data-act="member" data-id="${m.id}">${esc(m.name)}</button></td><td>${esc(m.role||'')}</td><td class="num">${+m.capacity||0}</td>${sp.map(s=>{const a=pts(sprintTickets(s.id).filter(t=>t.assignee===m.id)),c=memberAvail(m,s);const r=c?a/c:(a?2:0);return `<td class="${!a&&!c?'h0':r>1?'h3':r>.85?'h2':a?'h1':'h0'}" title="${a} of ${c} points">${c?Math.round(r*100)+'%':a?'∞':'—'}</td>`}).join('')}</tr>`).join('');
+  const totals=sp.map(s=>{const a=pts(sprintTickets(s.id)),c=sprintCap(s);return `<td title="${a} of ${c} points">${a} / ${c}</td>`}).join('');
+  return head('Team capacity','Each teammate’s points per sprint, less time off, against what’s assigned to them. Green is healthy, amber is near full, red is overbooked.',`<button class="btn pri" data-act="new-member">Add teammate</button>`)+
+   (S.members.length?`<div class="panel tblwrap"><table class="heat"><thead><tr><th>Teammate</th><th>Role</th><th class="num">Pts/sprint</th>${sp.map(s=>`<th style="text-align:center">${esc(s.name)}<div class="small muted" style="font-weight:400">${fmtD(s.start)}</div></th>`).join('')}</tr></thead><tbody>${rows}<tr><td><b>Team</b></td><td></td><td class="num"><b>${S.members.reduce((a,m)=>a+(+m.capacity||0),0)}</b></td>${totals}</tr></tbody></table></div>
+    <p class="small muted" style="margin-top:10px">Set time off per sprint on the Sprint planning page. Percentages are assigned points divided by available points.</p>`:`<div class="panel empty">No teammates yet. Add the people on this project and how many points each usually completes per sprint.</div>`);
+}
+
+function vMilestones(){
+  const ms=[...S.milestones].sort((a,b)=>a.date<b.date?-1:1);
+  const v=velocity();
+  return head('Milestones','Forecasts use the average velocity of the last three sprints and all remaining work in epics due on or before each milestone.',`<button class="btn pri" data-act="new-milestone">Add milestone</button>`)+
+   (ms.length?`<div class="stack">${ms.map(m=>{const r=msStatus(m),dl=diff(TODAY,m.date);
+    return `<section class="panel mscard"><div class="msdate"><b>${fmtD(m.date)}</b><span class="small muted">${dl>=0?plural(dl,'day')+' away':plural(-dl,'day')+' ago'}</span></div>
+    <div><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><h2><button class="link" data-act="milestone" data-id="${m.id}">${esc(m.title)}</button></h2><span class="chip ${r.cls}">${r.st}</span></div>
+    ${m.desc?`<p class="muted" style="margin-top:4px">${esc(m.desc)}</p>`:''}
+    <ul class="list1" style="margin-top:8px">${r.own.map(e=>{const p=epicProgress(e);return `<li><span class="dot" style="background:${esc(e.color)}"></span><div class="sp"><div class="small" style="display:flex;justify-content:space-between;gap:8px"><button class="link" data-act="epic" data-id="${e.id}">${esc(e.title)}</button><span class="muted">${p.done} / ${p.tot} pts</span></div>${meter(p.done,p.tot||1)}</div></li>`}).join('')||'<li class="muted small">No epics linked. Link epics to this milestone from the epic editor.</li>'}</ul></div>
+    <div class="small" style="text-align:right;min-width:150px"><div class="muted">Work remaining</div><b style="font-size:1.2rem">${r.f.rem} pts</b><div class="muted" style="margin-top:6px">Forecast finish</div><b>${r.f.date?fmtD(r.f.date):r.f.rem?(v?'—':'Needs velocity'):'Done'}</b></div></section>`}).join('')}</div>`:`<div class="panel empty">No milestones yet.</div>`);
+}
+
+function vRisks(){
+  const open=S.risks.filter(r=>r.status!=='closed');
+  const cnt=(l,i)=>open.filter(r=>+r.likelihood===l&&+r.impact===i).length;
+  let grid='';for(let l=3;l>=1;l--){grid+=`<div class="raxis">${['','Low','Med','High'][l]}</div>`;for(let i=1;i<=3;i++){const s=l*i,n=cnt(l,i);grid+=`<div class="rcell ${s>=6?'s3':s>=3?'s2':'s1'} ${n?'':'zero'}" title="Likelihood ${l}, impact ${i}">${n}</div>`}}
+  grid+=`<div></div><div class="raxis">Low</div><div class="raxis">Med</div><div class="raxis">High</div>`;
+  const rs=[...S.risks].map(r=>({...r,score:r.likelihood*r.impact})).sort((a,b)=>(a.status==='closed')-(b.status==='closed')||b.score-a.score);
+  return head('Risks','A RAID log: risks, assumptions, issues, and dependencies. Score is likelihood times impact, each rated 1 to 3.',`<button class="btn pri" data-act="new-risk">Log an item</button>`)+
+   `<div class="grid2" style="grid-template-columns:minmax(260px,380px) minmax(0,1fr)"><section class="panel"><h2>Open items by likelihood and impact</h2><div style="display:flex;gap:8px;align-items:center"><div class="raxis" style="writing-mode:vertical-rl;transform:rotate(180deg)">Likelihood</div><div class="rgrid" style="flex:1">${grid}</div></div><p class="raxis" style="margin-top:4px">Impact</p></section>
+   <section class="panel tblwrap"><table><thead><tr><th>Score</th><th>Type</th><th>Item</th><th>Owner</th><th>Status</th></tr></thead><tbody>${rs.map(r=>`<tr><td><span class="chip ${r.status==='closed'?'':r.score>=6?'bad':r.score>=3?'warn':'ok'}">${r.score}</span></td><td class="small">${esc((RAID.find(x=>x[0]===r.kind)||[,'Risk'])[1])}</td><td><button class="link" data-act="risk" data-id="${r.id}">${esc(r.title)}</button>${r.mitigation?`<div class="small muted">${esc(r.mitigation)}</div>`:''}</td><td class="small">${r.owner&&member(r.owner)?esc(member(r.owner).name):'—'}</td><td class="small">${esc({open:'Open',mitigating:'Mitigating',closed:'Closed'}[r.status]||r.status)}</td></tr>`).join('')||'<tr><td colspan="5" class="empty">Nothing logged yet.</td></tr>'}</tbody></table></section></div>`;
+}
+
+function weekStart(d){const dt=parse(d);const w=(dt.getDay()+6)%7;return addDays(d,-w)}
+function vReports(){
+  const closed=sortedSprints().filter(s=>s.status==='closed').slice(-8),v=velocity();
+  const vel=closed.length?svgBars({groups:closed.map(s=>({label:s.name.replace('Sprint ','S'),vals:[{v:+s.committed||0,color:'color-mix(in srgb,var(--accent) 30%,var(--panel))'},{v:+s.completed||0,color:'var(--accent)'}]})),avg:v,ymax:Math.max(...closed.map(s=>Math.max(+s.committed||0,+s.completed||0)),1)})+legend([['color-mix(in srgb,var(--accent) 30%,var(--panel))','Committed'],['var(--accent)','Completed']]):'<p class="muted">Complete a sprint to start building velocity history.</p>';
+  const sayDo=closed.length?Math.round(closed.reduce((a,s)=>a+(+s.completed||0),0)/Math.max(1,closed.reduce((a,s)=>a+(+s.committed||0),0))*100):null;
+  const bOpts=sortedSprints().filter(s=>s.status!=='planned');
+  const rs=byId(bOpts,UI.reportSprint)||activeSprint()||bOpts[bOpts.length-1];
+  let bd='<p class="muted">No sprint history yet.</p>';
+  if(rs){UI.reportSprint=rs.id;const len=diff(rs.start,rs.end)+1,b=burn(rs),c=+rs.committed||pts(sprintTickets(rs.id));bd=svgLine({labels:[...Array(len)].map((_,i)=>fmtD(addDays(rs.start,i))),series:[{vals:[...Array(len)].map((_,i)=>c*(1-i/(len-1))),color:'var(--muted)',dash:true,name:'Ideal'},{vals:b,color:'var(--accent)',dots:true,name:'Remaining'}],ymax:Math.max(c,...b,1)})+legend([['var(--accent)','Points remaining'],['var(--muted)','Ideal',1]])}
+  const wk0=weekStart(addDays(TODAY,-49)),weeks=[...Array(8)].map((_,i)=>addDays(wk0,i*7));
+  const bugs=tickets().filter(t=>t.type==='bug');
+  const opened=weeks.map(w=>bugs.filter(b=>b.createdAt>=w&&b.createdAt<addDays(w,7)).length),fixed=weeks.map(w=>bugs.filter(b=>b.doneAt&&b.doneAt>=w&&b.doneAt<addDays(w,7)).length);
+  const recent=tickets().filter(t=>isDone(t)&&t.doneAt>=addDays(TODAY,-42)&&t.startedAt);
+  const cycle=recent.length?(recent.reduce((a,t)=>a+diff(t.startedAt,t.doneAt)+1,0)/recent.length).toFixed(1):'—';
+  const thr=Math.round(pts(tickets().filter(t=>isDone(t)&&t.doneAt>=addDays(TODAY,-28)))/4);
+  const bl=tickets().filter(t=>!isDone(t)&&t.status!=='triage'),remAll=pts(bl);
+  const a=activeSprint(),eta=v?addDays(a?a.start:TODAY,Math.ceil(remAll/v)*14-1):null;
+  return head('Reports','Delivery health across sprints.',tickets().length?`<button class="btn" data-act="export">Export tickets as CSV</button>`:'')+
+   `<div class="tiles"><div class="tile"><b>${v||'—'}</b><span>average velocity, last 3 sprints</span></div><div class="tile"><b>${sayDo==null?'—':sayDo+'%'}</b><span>say/do ratio: completed vs committed</span></div><div class="tile"><b>${cycle}</b><span>average cycle time in days, last 6 weeks</span></div><div class="tile"><b>${thr}</b><span>points finished per week, last 4 weeks</span></div><div class="tile"><b>${eta?fmtD(eta):'—'}</b><span>forecast to clear all ${remAll} open points</span></div></div>
+   <div class="grid2"><section class="panel"><h2>Velocity</h2>${vel}</section>
+   <section class="panel"><div class="phead"><h2>Burndown</h2>${bOpts.length?`<select class="selectlike" data-chg="report-sprint" aria-label="Sprint">${bOpts.map(o=>`<option value="${o.id}"${rs&&o.id===rs.id?' selected':''}>${esc(o.name)}</option>`).join('')}</select>`:''}</div>${bd}</section>
+   <section class="panel"><h2>Bugs opened and fixed per week</h2>${svgLine({labels:weeks.map(fmtD),series:[{vals:opened,color:'var(--bad)',dots:true,name:'Opened'},{vals:fixed,color:'var(--ok)',dots:true,name:'Fixed'}],ymax:Math.max(...opened,...fixed,2)})}${legend([['var(--bad)','Opened'],['var(--ok)','Fixed']])}</section>
+   <section class="panel"><h2>Open work by status</h2><ul class="list1">${STATUSES.filter(([k])=>k!=='done').map(([k,l])=>{const ts=tickets().filter(t=>t.status===k),p=pts(ts),mx=Math.max(1,pts(tickets().filter(t=>!isDone(t))));return `<li><span style="width:90px" class="small">${l}</span><div class="sp">${meter(p,mx)}</div><span class="small muted" style="width:80px;text-align:right">${plural(ts.length,'ticket')}</span></li>`}).join('')}</ul></section></div>`;
+}
+
+/* ---------- flow metrics (lean / six sigma) ---------- */
+const mean=a=>a.length?a.reduce((s,v)=>s+v,0)/a.length:0;
+const pctl=(a,p)=>{if(!a.length)return 0;const s=[...a].sort((x,y)=>x-y);return s[Math.max(0,Math.min(s.length-1,Math.ceil(p/100*s.length)-1))]};
+function sayDo(n=3){const c=sortedSprints().filter(s=>s.status==='closed').slice(-n),cm=c.reduce((a,s)=>a+(+s.committed||0),0);return cm?Math.round(c.reduce((a,s)=>a+(+s.completed||0),0)/cm*100):null}
+// individuals (XmR) chart: sigma estimated from the average moving range / d2 (1.128)
+function xmr(v){const m=mean(v),mr=v.slice(1).map((x,i)=>Math.abs(x-v[i])),sig=mr.length?mean(mr)/1.128:0;return {m,sig,ucl:m+3*sig,lcl:Math.max(0,m-3*sig)}}
+function flowStats(){
+  const done=tickets().filter(t=>isDone(t)&&t.startedAt&&t.doneAt&&t.doneAt>=addDays(TODAY,-90)).sort((a,b)=>a.doneAt<b.doneAt?-1:a.doneAt>b.doneAt?1:0);
+  const ct=done.map(t=>diff(t.startedAt,t.doneAt)+1),x=xmr(ct);
+  const daily=[...Array(42)].map((_,i)=>{const d=addDays(TODAY,i-41);return tickets().filter(t=>isDone(t)&&t.doneAt===d).length}),thrDay=mean(daily);
+  const wip=tickets().filter(t=>t.status==='inprogress'||t.status==='review');
+  const aging=wip.filter(t=>t.startedAt).map(t=>({t,age:diff(t.startedAt,TODAY)+1})).sort((a,b)=>b.age-a.age);
+  const lead=tickets().filter(t=>isDone(t)&&t.doneAt&&t.createdAt&&t.doneAt>=addDays(TODAY,-90)).map(t=>diff(t.createdAt,t.doneAt)+1);
+  const usl=+(S.flow&&S.flow.usl)||0,over=usl?ct.filter(v=>v>usl).length:0;
+  const out=x.sig?ct.map((v,i)=>v>x.ucl?i:-1).filter(i=>i>=0):[];
+  const shifts=[];let run=0,side=0;ct.forEach((v,i)=>{const s=v>x.m?1:v<x.m?-1:0;if(s&&s===side)run++;else{side=s;run=s?1:0}if(run===8)shifts.push(i)});
+  return {done,ct,x,p50:pctl(ct,50),p85:pctl(ct,85),p95:pctl(ct,95),daily,thrDay,wip,aging,ctAvg:mean(ct),leadAvg:mean(lead),usl,over,
+    cpk:usl&&x.sig&&ct.length>=2?(usl-x.m)/(3*x.sig):null,dpmo:usl&&ct.length?Math.round(over/ct.length*1e6):null,out,shifts,little:thrDay?wip.length/thrDay:null};
+}
+function cfdData(n){const ts=tickets().filter(t=>t.status!=='triage'),days=[...Array(n)].map((_,i)=>addDays(TODAY,i-n+1)),L={todo:[],prog:[],done:[]};
+  days.forEach(d=>{let a=0,b=0,c=0;ts.forEach(t=>{if(t.doneAt&&t.doneAt<=d)c++;else if(t.startedAt&&t.startedAt<=d)b++;else if(t.createdAt&&t.createdAt<=d)a++});L.todo.push(a);L.prog.push(b);L.done.push(c)});
+  return {days,L}}
+function bugPareto(){
+  const bugs=tickets().filter(t=>t.type==='bug'&&(t.createdAt||TODAY)>=addDays(TODAY,-180)),c={};
+  bugs.forEach(b=>{const ls=String(b.labels||'').split(',').map(s=>s.trim()).filter(Boolean);(ls.length?ls:[(byId(S.epics,b.epicId)||{}).title||'Uncategorized']).forEach(k=>c[k]=(c[k]||0)+1)});
+  let rows=Object.entries(c).sort((a,b)=>b[1]-a[1]);if(rows.length>10)rows=[...rows.slice(0,9),['Other',rows.slice(9).reduce((a,r)=>a+r[1],0)]];
+  const tot=rows.reduce((a,r)=>a+r[1],0);let cum=0;
+  return {n:bugs.length,tot,rows:rows.map(([k,v])=>{cum+=v;return {k,v,cum:tot?cum/tot*100:0}})};
+}
+function rng(seed){return()=>{seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+// Monte Carlo: replay random days of recent throughput until n items are done; seeded so the numbers don't jump on every render
+function monteCarlo(n,samples,runs=2000){
+  if(!n||!samples.some(x=>x>0))return null;const r=rng(n*7919+samples.length),days=[];
+  for(let i=0;i<runs;i++){let left=n,d=0;while(left>0&&d<1460){left-=samples[Math.floor(r()*samples.length)];d++}days.push(d)}
+  days.sort((a,b)=>a-b);const at=p=>days[Math.min(runs-1,Math.floor(runs*p))];return {days,p50:at(.5),p85:at(.85),p95:at(.95)};
+}
+function mcScope(){const sc=UI.mcScope||'all';let ts=tickets().filter(t=>!isDone(t)&&t.status!=='triage'),target=null,label='all open work';
+  if(sc.startsWith('e:')){const e=byId(S.epics,sc.slice(2));if(e){ts=ts.filter(t=>t.epicId===e.id);target=e.end;label=e.title}}
+  else if(sc.startsWith('m:')){const m=byId(S.milestones,sc.slice(2));if(m){const ids=S.epics.filter(e=>{const mm=byId(S.milestones,e.milestoneId);return mm&&mm.date<=m.date}).map(e=>e.id);ts=ts.filter(t=>ids.includes(t.epicId));target=m.date;label=m.title}}
+  return {ts,target,label}}
+
+function yGrid(w,pl,pr,y,max,step){let g='';for(let v=0;v<=max+1e-9;v+=step)g+=`<line x1="${pl}" x2="${w-pr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${pl-7}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${Math.round(v)}</text>`;return g}
+function xTicks(labels,x,h){const n=labels.length,k=Math.ceil(n/7);return labels.map((l,i)=>i%k===0||i===n-1?`<text x="${x(i)}" y="${h-8}" text-anchor="middle" font-size="11" fill="var(--muted)">${esc(l)}</text>`:'').join('')}
+function svgArea({w=640,h=230,labels,layers}){
+  const pl=36,pr=12,pt=12,pb=28,n=labels.length,tot=labels.map((_,i)=>layers.reduce((a,l)=>a+l.vals[i],0));const {max,step}=niceMax(Math.max(...tot,1));
+  const x=i=>pl+i*(w-pl-pr)/Math.max(1,n-1),y=v=>pt+(h-pt-pb)*(1-v/max),P=(i,v)=>x(i).toFixed(1)+' '+y(v).toFixed(1);
+  let g=yGrid(w,pl,pr,y,max,step)+xTicks(labels,x,h);const base=labels.map(()=>0);
+  layers.forEach(l=>{const top=base.map((b,i)=>b+l.vals[i]);
+    g+=`<path d="M${top.map((v,i)=>P(i,v)).join(' L')} L${base.map((v,i)=>P(i,v)).reverse().join(' L')}Z" fill="${l.color}" stroke="var(--panel)" stroke-width="1"><title>${esc(l.name)}: ${l.vals[n-1]} now</title></path>`;
+    top.forEach((v,i)=>base[i]=v)});
+  return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Cumulative flow diagram">${g}</svg>`;
+}
+function svgControl({w=640,h=240,pts,st,usl}){
+  const pl=36,pr=62,pt=12,pb=28,n=pts.length;const {max,step}=niceMax(Math.max(st.ucl,usl||0,...pts.map(p=>p.v),1));
+  const x=i=>pl+(n<2?(w-pl-pr)/2:i*(w-pl-pr)/(n-1)),y=v=>pt+(h-pt-pb)*(1-v/max);
+  const hl=(v,c,l,dash)=>`<line x1="${pl}" x2="${w-pr}" y1="${y(v)}" y2="${y(v)}" stroke="${c}"${dash?' stroke-dasharray="5 4"':''}/><text x="${w-pr+5}" y="${y(v)+4}" font-size="10.5" fill="${c}">${l}</text>`;
+  let g=yGrid(w,pl,pr,y,max,step)+xTicks(pts.map(p=>p.label),x,h)+hl(st.m,'var(--ink)','mean '+st.m.toFixed(1));
+  if(st.sig){g+=hl(st.ucl,'var(--bad)','UCL '+st.ucl.toFixed(1),1);if(st.lcl>0)g+=hl(st.lcl,'var(--bad)','LCL '+st.lcl.toFixed(1),1)}
+  if(usl)g+=hl(usl,'var(--warn)','target '+usl,1);
+  g+=`<path d="${pts.map((p,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(p.v).toFixed(1)).join(' ')}" fill="none" stroke="var(--muted)" stroke-opacity=".5" stroke-width="1.2"/>`;
+  pts.forEach((p,i)=>{g+=`<circle cx="${x(i)}" cy="${y(p.v)}" r="${p.bad?4.5:3.5}" fill="${p.bad?'var(--bad)':'var(--accent)'}" stroke="var(--panel)" stroke-width="1.5" data-act="ticket" data-id="${p.id}" style="cursor:pointer"><title>${esc(p.key)}: ${plural(p.v,'day')}, done ${esc(p.label)}</title></circle>`});
+  return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Cycle time control chart">${g}</svg>`;
+}
+function svgPareto({w=640,h=240,rows}){
+  const pl=36,pr=40,pt=14,pb=34,n=rows.length||1,gw=(w-pl-pr)/n;const {max,step}=niceMax(Math.max(...rows.map(r=>r.v),1));
+  const y=v=>pt+(h-pt-pb)*(1-v/max),yp=p=>pt+(h-pt-pb)*(1-p/100),cx=i=>pl+i*gw+gw/2;
+  let g=yGrid(w,pl,pr,y,max,step)+`<line x1="${pl}" x2="${w-pr}" y1="${yp(80)}" y2="${yp(80)}" stroke="var(--warn)" stroke-dasharray="5 4"/><text x="${w-pr+5}" y="${yp(80)+4}" font-size="10.5" fill="var(--warn)">80%</text><text x="${w-pr+5}" y="${yp(100)+4}" font-size="10.5" fill="var(--muted)">100%</text>`;
+  rows.forEach((r,i)=>{const bw=Math.min(44,gw*.7),bx=cx(i)-bw/2,vital=(i?rows[i-1].cum:0)<80;
+    g+=`<rect x="${bx}" y="${y(r.v)}" width="${bw}" height="${y(0)-y(r.v)}" rx="3" fill="${vital?'var(--bad)':'color-mix(in srgb,var(--bad) 30%,var(--panel))'}"><title>${esc(r.k)}: ${plural(r.v,'bug')}, ${Math.round(r.cum)}% cumulative</title></rect><text x="${cx(i)}" y="${h-12}" text-anchor="middle" font-size="10.5" fill="var(--muted)">${esc(r.k.length>11?r.k.slice(0,10)+'…':r.k)}</text>`});
+  g+=`<path d="${rows.map((r,i)=>(i?'L':'M')+cx(i).toFixed(1)+' '+yp(r.cum).toFixed(1)).join(' ')}" fill="none" stroke="var(--ink)" stroke-width="1.8"/>`+rows.map((r,i)=>`<circle cx="${cx(i)}" cy="${yp(r.cum)}" r="3" fill="var(--panel)" stroke="var(--ink)" stroke-width="1.8"/>`).join('');
+  return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Pareto chart of bugs by category">${g}</svg>`;
+}
+
+function vFlow(){
+  const f=flowStats(),c=cfdData(56),pa=bugPareto(),sc=mcScope(),mc=monteCarlo(sc.ts.length,f.daily),n=f.ct.length,fx=v=>(+v).toFixed(1);
+  const usl=`<label class="small muted" style="display:flex;align-items:center;gap:6px">Target cycle time (days) <input class="numin" type="number" min="0" step="1" value="${f.usl||''}" placeholder="none" data-chg="usl" aria-label="Target cycle time in days"></label>`;
+  const todoC='color-mix(in srgb,var(--accent) 28%,var(--panel))';
+  const cfd=svgArea({labels:c.days.map(fmtD),layers:[{name:'Done',color:'var(--ok)',vals:c.L.done},{name:'In progress',color:'var(--accent)',vals:c.L.prog},{name:'To do',color:todoC,vals:c.L.todo}]})+legend([[todoC,'To do'],['var(--accent)','In progress'],['var(--ok)','Done']]);
+  const ctl=n>=2?svgControl({pts:f.done.map((t,i)=>({v:f.ct[i],label:fmtD(t.doneAt),id:t.id,key:t.key,bad:f.out.includes(i)})),st:f.x,usl:f.usl})+legend([['var(--accent)','Cycle time per ticket'],['var(--bad)','Control limits (mean ± 3σ)',1],...(f.usl?[['var(--warn)','Target',1]]:[])]):'<p class="muted">Finish at least two tickets that went through In progress to draw the control chart.</p>';
+  let read,rcls;
+  if(n<5){read='Fewer than 5 data points: treat these limits as provisional.';rcls='warn'}
+  else if(f.out.length){read=`${plural(f.out.length,'ticket')} above the upper limit: special-cause variation worth a 5 Whys.`;rcls='bad'}
+  else if(f.shifts.length){read='8 or more points in a row on one side of the mean: the process has shifted.';rcls='warn'}
+  else {read='Only common-cause variation: the process is stable. Improve it by changing the system, not by chasing single tickets.';rcls='ok'}
+  const cap=`<dl class="statlist"><dt>Sample</dt><dd>${plural(n,'ticket')}, last 90 days</dd><dt>Mean cycle time</dt><dd>${n?fx(f.x.m)+' days':'—'}</dd><dt>Sigma (moving range)</dt><dd>${n>1?fx(f.x.sig)+' days':'—'}</dd><dt>Control limits</dt><dd>${n>1?`${fx(f.x.lcl)} to ${fx(f.x.ucl)} days`:'—'}</dd><dt>Target (upper spec)</dt><dd>${f.usl?f.usl+' days':'Not set'}</dd><dt>Cpk</dt><dd>${f.cpk==null?'—':f.cpk.toFixed(2)}</dd><dt>Sigma level, short term</dt><dd>${f.cpk==null?'—':(3*f.cpk).toFixed(1)+'σ'}</dd><dt>Over target</dt><dd>${f.dpmo==null?'—':`${f.over} of ${n} (${f.dpmo.toLocaleString()} DPMO)`}</dd></dl>`+
+    `<p class="signal ${rcls}">${esc(read)}</p>${f.cpk!=null?`<p class="small muted" style="margin-top:8px">Cpk ${f.cpk<1?'below 1 means the process can’t reliably meet the target.':f.cpk<1.33?'between 1 and 1.33 is marginal.':'of 1.33 or more is capable.'} Cpk uses the upper limit only, because shorter is always fine.</p>`:''}`;
+  const aging=f.aging.length?`<ul class="list1">${f.aging.slice(0,8).map(x=>`<li><span class="key">${esc(x.t.key)}</span><div class="sp"><div class="small" style="display:flex;justify-content:space-between;gap:8px"><button class="link" data-act="ticket" data-id="${x.t.id}">${esc(x.t.title)}</button><span class="${f.p85&&x.age>f.p85?'':'muted'}" style="${f.p85&&x.age>f.p85?'color:var(--bad);font-weight:600':''}">${plural(x.age,'day')}</span></div>${meter(x.age,Math.max(f.p85||x.age,1))}</div>${av(x.t.assignee)}</li>`).join('')}</ul><p class="small muted" style="margin-top:8px">${f.p85?`Bars fill at ${f.p85} days, the 85th percentile cycle time. Red means older than 85% of recently finished tickets.`:'Finish a few tickets to calibrate these bars.'}</p>`:'<p class="muted">Nothing is in progress.</p>';
+  const par=pa.rows.length?svgPareto({rows:pa.rows})+`<p class="small muted">${plural(pa.n,'bug')} reported in the last 6 months, grouped by label (or epic when unlabeled). Dark bars are the “vital few” that make up the first 80%.</p>`:'<p class="muted">No bugs reported in the last 6 months.</p>';
+  const opts=[['all','All open work'],...S.epics.map(e=>['e:'+e.id,'Epic: '+e.title]),...S.milestones.map(m=>['m:'+m.id,'Milestone: '+m.title])];
+  const mcSel=`<select class="selectlike" data-chg="mc-scope" aria-label="Forecast scope">${opts.map(([v,l])=>`<option value="${esc(v)}"${(UI.mcScope||'all')===v?' selected':''}>${esc(l)}</option>`).join('')}</select>`;
+  let mcBody;
+  if(!sc.ts.length)mcBody='<p class="muted">Nothing is open in this scope.</p>';
+  else if(!mc)mcBody='<p class="muted">Finish some tickets first. The simulation samples daily throughput from the last 6 weeks.</p>';
+  else{const hit=sc.target?Math.round(mc.days.filter(d=>addDays(TODAY,d)<=sc.target).length/mc.days.length*100):null;
+    const lo=mc.days[0],hi=mc.days[mc.days.length-1],bw=Math.max(1,Math.ceil((hi-lo+1)/12)),bk=[];for(let s=lo;s<=hi;s+=bw)bk.push({s,c:mc.days.filter(d=>d>=s&&d<s+bw).length});
+    mcBody=`<div class="tiles" style="margin:0 0 8px">${[[50,mc.p50],[85,mc.p85],[95,mc.p95]].map(([p,d])=>`<div class="tile"><b>${fmtD(addDays(TODAY,d))}</b><span>${p}% likely done by</span></div>`).join('')}${hit!=null?`<div class="tile"><b style="color:${hit>=85?'var(--ok)':hit>=50?'var(--warn)':'var(--bad)'}">${hit}%</b><span>chance of finishing by ${fmtD(sc.target)}</span></div>`:''}</div>`+
+      svgBars({h:190,groups:bk.map(b=>({label:fmtD(addDays(TODAY,b.s)),vals:[{v:b.c,color:'var(--accent)'}]})),ymax:Math.max(...bk.map(b=>b.c),1)})+
+      `<p class="small muted">${plural(sc.ts.length,'open item')} in ${esc(sc.label)}, 2,000 simulated futures. Each run replays random days from the last 6 weeks, when the team finished ${plural(f.daily.reduce((a,b)=>a+b,0),'item')}. Bars show how many runs finished in each window.</p>`}
+  return head('Flow metrics','Lean and Six Sigma views of how work moves: cumulative flow, a cycle-time control chart with process capability, aging work, a defect Pareto, and a Monte Carlo forecast.',usl)+
+   `<div class="tiles"><div class="tile"><b>${f.wip.length}</b><span>items in progress or review now</span></div><div class="tile"><b>${fx(f.thrDay*7)}</b><span>items finished per week, last 6 weeks</span></div><div class="tile"><b>${n?f.p50+' / '+f.p85:'—'}</b><span>cycle time in days, 50th / 85th percentile</span></div><div class="tile"><b>${f.leadAvg?fx(f.leadAvg):'—'}</b><span>average lead time in days, created to done</span></div><div class="tile"><b>${f.leadAvg&&f.ctAvg?Math.round(f.ctAvg/f.leadAvg*100)+'%':'—'}</b><span>of lead time spent in progress (the rest is queue)</span></div><div class="tile"><b>${f.little?fx(f.little):'—'}</b><span>days per item implied by current WIP (Little’s Law)</span></div></div>
+   <div class="grid2 flowgrid"><section class="panel"><h2>Cumulative flow, last 8 weeks</h2>${cfd}<p class="small muted">A widening blue band means work is piling up in progress; a flat green band means nothing is finishing.</p></section>
+   <section class="panel"><h2>Cycle time control chart (XmR)</h2>${ctl}</section>
+   <section class="panel"><h2>Process capability</h2>${cap}</section>
+   <section class="panel"><h2>Aging work in progress</h2>${aging}</section>
+   <section class="panel"><h2>Defect Pareto</h2>${par}</section>
+   <section class="panel"><div class="phead"><h2>Monte Carlo forecast</h2>${mcSel}</div>${mcBody}</section></div>`;
+}
+
+/* ---------- retrospectives ---------- */
+function retroOf(sid,create){S.retros=S.retros||[];let r=S.retros.find(x=>x.sprintId===sid);if(!r&&create){r={id:uid(),sprintId:sid,well:[],improve:[],actions:[]};S.retros.push(r)}return r}
+function sprintFacts(s){const ts=sprintTickets(s.id),done=ts.filter(isDone),committed=+s.committed||pts(ts),completed=s.status==='closed'?+s.completed||0:pts(done);
+  const cts=done.filter(t=>t.startedAt&&t.doneAt).map(t=>diff(t.startedAt,t.doneAt)+1);
+  return {committed,completed,sayDo:committed?Math.round(completed/committed*100):null,added:s.status==='closed'?0:pts(ts)-committed,
+    bugs:tickets().filter(t=>t.type==='bug'&&t.createdAt>=s.start&&t.createdAt<=s.end).length,ct:cts.length?mean(cts).toFixed(1):null,blocked:ts.filter(t=>!isDone(t)&&blockers(t).length).length}}
+function retroTalk(s,f,nPrev){const o=[];
+  if(nPrev)o.push(`Start by checking ${plural(nPrev,'open action item')} from earlier retros (listed below).`);
+  if(f.sayDo!=null){if(f.sayDo<80)o.push(`The team finished ${f.sayDo}% of what it committed. Was the commitment too big, or did unplanned work land?`);else if(f.sayDo>=100)o.push(`The commitment was met (${f.sayDo}%). What made that work, and how do we keep it?`)}
+  if(f.added>0)o.push(`Scope grew by ${plural(f.added,'point')} after the sprint started. Where did that work come from?`);
+  if(f.bugs)o.push(`${plural(f.bugs,'bug')} reported during the sprint. Is there a pattern in where they came from?`);
+  if(f.blocked)o.push(`${plural(f.blocked,'ticket')} ${f.blocked===1?'is':'are'} still blocked. What would have cleared ${f.blocked===1?'it':'them'} sooner?`);
+  const pr=sortedSprints().filter(x=>x.status==='closed'&&x.start<s.start).slice(-1)[0];
+  if(pr&&s.status==='closed'){const d=(+s.completed||0)-(+pr.completed||0);if(d)o.push(`Velocity ${d>0?'rose':'fell'} by ${plural(Math.abs(d),'point')} compared with ${pr.name}.`)}
+  if(!s.goal)o.push('This sprint had no sprint goal. Would one have helped the team make trade-offs?');
+  return o}
+function actionMeta(a){const t=a.ticketId&&T[a.ticketId];return t?` <button class="link key" data-act="ticket" data-id="${t.id}">${esc(t.key)}</button> <span class="chip ${isDone(t)?'ok':''}">${STL[t.status]}</span>`:''}
+function vRetro(){
+  const opts=sortedSprints().filter(s=>s.status!=='planned').reverse();
+  const H=a=>head('Retrospectives','Inspect each sprint and adapt: what went well, what to improve, and the action items the team commits to. Turn action items into backlog tickets so they don’t get lost.',a);
+  if(!opts.length)return H('')+`<div class="panel empty">Retrospectives open once a sprint has started.</div>`;
+  const s=byId(opts,UI.retroSprint)||opts.find(x=>x.status==='closed')||opts[0];UI.retroSprint=s.id;
+  const r=retroOf(s.id)||{well:[],improve:[],actions:[]},f=sprintFacts(s);
+  const prev=(S.retros||[]).filter(x=>x.sprintId!==s.id).flatMap(x=>x.actions.map(a=>({a,rid:x.id,sp:(byId(S.sprints,x.sprintId)||{}).name||'An earlier sprint'}))).filter(({a})=>!a.done&&!(a.ticketId&&T[a.ticketId]&&isDone(T[a.ticketId])));
+  const talk=retroTalk(s,f,prev.length);
+  const item=(k,it)=>`<li><div class="sp">${esc(it.text)}${k==='actions'?actionMeta(it):''}</div>${k==='actions'&&!(it.ticketId&&T[it.ticketId])?`<button class="btn sm" data-act="retro-ticket" data-id="${it.id}">Make ticket</button>`:''}<button class="rx" data-act="retro-del" data-col="${k}" data-id="${it.id}" aria-label="Remove">×</button></li>`;
+  const col=(k,title,hint)=>`<section class="panel"><h2>${title}</h2><p class="small muted" style="margin-top:2px">${hint}</p>${r[k].length?`<ul class="list1">${r[k].map(it=>item(k,it)).join('')}</ul>`:''}<div class="radd"><input id="rin-${k}" data-retro="${k}" placeholder="Add an item, then press Enter" aria-label="Add to ${title}"><button class="btn sm" data-act="retro-add" data-col="${k}">Add</button></div></section>`;
+  const sel=`<select class="selectlike" data-chg="retro-sprint" aria-label="Sprint">${opts.map(o=>`<option value="${o.id}"${o.id===s.id?' selected':''}>${esc(o.name)}${o.status==='active'?' (active)':''}</option>`).join('')}</select><button class="btn" data-act="go" data-v="scrum">Ask the Scrum Master</button>`;
+  return H(sel)+`<div class="tiles"><div class="tile"><b>${f.committed}</b><span>points committed</span></div><div class="tile"><b>${f.completed}</b><span>points ${s.status==='closed'?'completed':'done so far'}</span></div><div class="tile"><b>${f.sayDo==null?'—':f.sayDo+'%'}</b><span>say/do ratio</span></div><div class="tile"><b>${f.bugs}</b><span>bugs reported during the sprint</span></div><div class="tile"><b>${f.ct??'—'}</b><span>average cycle time in days</span></div></div>
+   <div class="stack">${talk.length?`<section class="panel"><h2>Talking points from the data</h2><ul class="list1">${talk.map(x=>`<li><span class="dot" style="background:var(--accent)"></span><div class="sp">${esc(x)}</div></li>`).join('')}</ul></section>`:''}
+   <div class="retrocols">${col('well','Went well','Keep doing these.')}${col('improve','To improve','What slowed us down or hurt quality?')}${col('actions','Action items','One or two concrete changes for next sprint.')}</div>
+   ${prev.length?`<section class="panel"><h2>Open action items from earlier retros</h2><ul class="list1">${prev.map(({a,rid,sp})=>`<li><div class="sp">${esc(a.text)}<div class="small muted">${esc(sp)}${actionMeta(a)}</div></div>${a.ticketId&&T[a.ticketId]?'':`<button class="btn sm" data-act="retro-done" data-r="${rid}" data-id="${a.id}">Mark done</button>`}</li>`).join('')}</ul></section>`:''}</div>`;
+}
+function retroAdd(col){const inp=$('#rin-'+col),v=inp&&inp.value.trim();if(!v){inp&&inp.focus();return}
+  retroOf(UI.retroSprint,true)[col].push({id:uid(),text:v});saveWs();render();const n=$('#rin-'+col);n&&n.focus()}
+function retroTicket(aid){const r=retroOf(UI.retroSprint),a=r&&r.actions.find(x=>x.id===aid);if(!a)return;const s=byId(S.sprints,r.sprintId);
+  const nt={id:uid(),key:S.project.key+'-'+(S.nextNum++),createdAt:TODAY,rank:maxRank()+1,startedAt:null,doneAt:null,title:a.text,type:'task',status:'backlog',priority:'P2',severity:null,points:1,
+    assignee:null,epicId:null,sprintId:null,start:null,due:null,deps:[],votes:0,reporter:'Retrospective',labels:'retro',desc:`Action item from the ${s?s.name:'sprint'} retrospective.`};
+  a.ticketId=nt.id;saveWs();saveT(nt);render();toast(`Created ${nt.key} in the backlog`)}
+
+/* ---------- coaches: local checks ---------- */
+const SEVR={bad:0,warn:1,'':2,ok:3};
+const notReady=t=>[!(+t.points)&&'Needs an estimate',!String(t.desc||'').trim()&&'Needs acceptance criteria',+t.points>=13&&'Too big: split it',blockers(t).length&&'Blocked'].filter(Boolean);
+function finder(){const out=[];return {out,F:(cls,t,d,fix,a)=>out.push({cls,t,d,fix,a}),done:ok=>{if(!out.some(f=>f.cls==='bad'||f.cls==='warn')&&ok)out.push({cls:'ok',t:ok});return out.sort((x,y)=>SEVR[x.cls]-SEVR[y.cls])}}}
+function scrumFindings(){
+  const {F,done}=finder(),a=activeSprint(),v=velocity(),f=flowStats();
+  if(!a){const nx=sortedSprints().find(s=>s.status==='planned');F('warn','No sprint is running',nx?`${nx.name} is planned with ${plural(pts(sprintTickets(nx.id)),'point')}.`:'There’s no planned sprint either.','Hold sprint planning: agree a sprint goal, pull work that serves it, then start the sprint.',['go','planning','Sprint planning'])}
+  else{const p=sprintPulse(a),ts=sprintTickets(a.id);
+    if(!String(a.goal||'').trim())F('warn',`${a.name} has no sprint goal`,'Without a goal the team optimizes for tickets instead of an outcome.','Write a one-sentence goal that the whole sprint backlog serves.',['sprint',a.id,'Set goal']);
+    if(p.cls!=='ok')F(p.cls,'The burndown is behind',p.sig,'Swarm on the highest-ranked unfinished work, and agree with the Product Owner what can drop if the goal is at risk.',['go','board','Sprint board']);
+    if(p.total>p.committed)F('warn',`Scope grew by ${plural(p.total-p.committed,'point')} mid-sprint`,`Committed ${p.committed}, now ${p.total}.`,'New work mid-sprint should go through the Product Owner and swap out work of the same size.',['go','backlog','Backlog']);
+    if(v&&p.committed>v*1.15)F('warn','The commitment is above recent velocity',`Committed ${p.committed} points against an average of ${v}.`,'Plan to velocity next sprint, or make the stretch explicit in the goal.',null);
+    ts.filter(t=>!isDone(t)&&blockers(t).length).slice(0,4).forEach(t=>F('bad',`Impediment: ${t.key} is blocked`,`${t.title}. Waiting on ${blockers(t).map(b=>b.key+' ('+STL[b.status]+')').join(', ')}.`,'Raise it at standup today and name someone to clear the blocker.',['ticket',t.id,'Open']));
+    const wip=ts.filter(t=>t.status==='inprogress').length;if(S.members.length&&wip>S.members.length)F('warn',`${plural(wip,'ticket')} in progress for ${plural(S.members.length,'person')}`,'More work has been started than there are people to finish it.','Stop starting, start finishing: pair or swarm before pulling new tickets.',['go','board','Sprint board']);
+    ts.filter(t=>t.status==='inprogress'&&!t.assignee).slice(0,3).forEach(t=>F('warn',`${t.key} is in progress with no owner`,t.title,'Ask who is working on it and assign them, so standup and the board stay truthful.',['ticket',t.id,'Open']));
+    ts.filter(t=>(t.status==='inprogress'||t.status==='review')&&t.startedAt).map(t=>({t,age:diff(t.startedAt,TODAY)+1})).filter(x=>x.age>Math.max(5,f.p85||0)).slice(0,3)
+      .forEach(x=>F('warn',`${x.t.key} has been ${x.t.status==='review'?'in review':'in progress'} for ${plural(x.age,'day')}`,x.t.title,'Ask what it needs to finish at the next standup; consider splitting it.',['ticket',x.t.id,'Open']));
+    S.members.forEach(m=>{const as=pts(ts.filter(t=>t.assignee===m.id)),c=memberAvail(m,a);if(as>c)F('warn',`${m.name} is overbooked`,`${as} points assigned, ${c} available this sprint.`,'Rebalance at standup or move lower-ranked work out of the sprint.',['go','planning','Sprint planning'])});
+  }
+  const lc=sortedSprints().filter(s=>s.status==='closed').slice(-1)[0],lr=lc&&retroOf(lc.id);
+  if(lc&&!(lr&&(lr.well.length||lr.improve.length||lr.actions.length)))F('warn',`No retrospective recorded for ${lc.name}`,'Skipping the retro removes the team’s main chance to improve how it works.','Run a short retro and capture one or two action items.',['go','retro','Retrospectives']);
+  const openA=(S.retros||[]).flatMap(r=>r.actions).filter(x=>!x.done&&!(x.ticketId&&T[x.ticketId]&&isDone(T[x.ticketId])));
+  if(openA.length)F('',`${plural(openA.length,'retro action item')} still open`,openA.slice(0,3).map(x=>x.text).join('; ')+(openA.length>3?'…':''),'Review these at the start of the next retro, and turn any without an owner into tickets.',['go','retro','Retrospectives']);
+  const sd=sayDo();if(sd!=null&&sd<80)F('warn',`Say/do ratio is ${sd}% over the last 3 sprints`,'The team regularly finishes well short of its commitment.','Commit to recent velocity and protect the sprint from unplanned work.',['go','reports','Reports']);
+  const lens=[...new Set(sortedSprints().filter(s=>s.status==='closed').slice(-5).map(s=>diff(s.start,s.end)+1))];
+  if(lens.length>1)F('',`Sprint lengths vary (${lens.map(n=>n+' days').join(', ')})`,'Velocity is only comparable between sprints of the same length.','Keep a fixed cadence.',null);
+  return done('No Scrum issues found: the sprint has a goal, is on pace, and nothing is blocked.');
+}
+function agileFindings(){
+  const {F,done}=finder(),open=tickets().filter(t=>!isDone(t)&&t.status!=='triage'),bl=open.filter(t=>!t.sprintId).sort(byRank),v=velocity();
+  if(!S.members.length)F('warn','No teammates set up','Capacity, planning, and forecasts all depend on the team.','Add teammates and the points each typically finishes per sprint.',['new-member','','Add teammate']);
+  const une=open.filter(t=>!(+t.points)&&t.type!=='bug');
+  if(une.length)F('warn',`${plural(une.length,'item')} without an estimate`,une.slice(0,6).map(t=>t.key).join(', ')+(une.length>6?'…':''),'Estimate them in refinement so forecasts and sprint planning reflect all the work.',['go','backlog','Backlog']);
+  open.filter(t=>+t.points>=13).slice(0,3).forEach(t=>F('warn',`${t.key} is ${t.points} points`,t.title,'Split it by workflow step, data variation, or acceptance criterion so each piece fits in a few days (INVEST: Small).',['ticket',t.id,'Open']));
+  const nod=bl.slice(0,10).filter(t=>!String(t.desc||'').trim());
+  if(nod.length)F('warn',`${plural(nod.length,'top backlog item')} with no description`,nod.map(t=>t.key).join(', '),'Add acceptance criteria before planning; without them an item fails the INVEST “Testable” check.',['ticket',nod[0].id,'Open the first']);
+  if(v){const ready=pts(bl.filter(t=>!notReady(t).length));if(ready<v*2)F('warn','Less than two sprints of ready work',`${ready} ready points in the backlog against a velocity of ${v}.`,'Hold a refinement session to get about two sprints of work estimated, described, and small enough.',['go','backlog','Backlog']);
+    const depth=pts(bl)/v;if(depth>8)F('',`The backlog holds about ${Math.round(depth)} sprints of work`,`${pts(bl)} points against a velocity of ${v}.`,'Prune items you won’t reach this quarter; a long backlog hides priorities.',['go','backlog','Backlog'])}
+  const cl=sortedSprints().filter(s=>s.status==='closed').slice(-6).map(s=>+s.completed||0);
+  if(cl.length>=3){const m=mean(cl),cv=m?Math.sqrt(mean(cl.map(x=>(x-m)**2)))/m:0;if(cv>.3)F('warn','Velocity is volatile',`Last ${cl.length} sprints: ${cl.join(', ')} points (${Math.round(cv*100)}% variation).`,'Forecasts built on an average will be unreliable. Look for unplanned work, changes in team size, or inconsistent estimates.',['go','reports','Reports'])}
+  const sd=sayDo();if(sd!=null&&sd<80)F('warn',`Say/do ratio is ${sd}%`,'Recent sprints finished well short of their commitment.','Commit to recent velocity and keep a buffer for unplanned work.',['go','planning','Sprint planning']);
+  const oldTri=tickets().filter(t=>t.status==='triage'&&t.createdAt&&diff(t.createdAt,TODAY)>7);
+  if(oldTri.length)F('warn',`${plural(oldTri.length,'item')} in triage for over a week`,oldTri.slice(0,6).map(t=>t.key).join(', '),'Triage at least weekly: accept, reject, or merge each item.',['go','tickets','Bugs & requests']);
+  const top=bl.slice(0,10).map(t=>t.id);
+  tickets().filter(t=>t.type==='feature'&&!isDone(t)&&(+t.votes||0)>=5&&!top.includes(t.id)).sort((a,b)=>b.votes-a.votes).slice(0,3)
+    .forEach(t=>F('',`${t.key} has ${t.votes} votes but isn’t near the top of the backlog`,t.title,'Check whether its value justifies moving it up. WSJF (cost of delay ÷ job size) helps compare it fairly.',['ticket',t.id,'Open']));
+  const bugP=pts(open.filter(t=>t.type==='bug')),allP=pts(open);
+  if(allP&&bugP/allP>.3)F('warn',`Bugs are ${Math.round(bugP/allP*100)}% of open work`,`${bugP} of ${allP} open points.`,'Quality debt is crowding out new value. Reserve capacity for defects and tighten the definition of done.',['go','tickets','Bugs & requests']);
+  S.epics.forEach(e=>{const p=epicProgress(e);if(e.end<TODAY&&p.tot&&p.done<p.tot)F('bad',`Epic “${e.title}” is past its end date`,`${p.pct}% done; it was due to end ${fmtD(e.end)}.`,'Re-plan it: cut scope or move the date, and tell stakeholders.',['epic',e.id,'Edit epic'])});
+  if(S.milestones.length){const nm=S.epics.filter(e=>!e.milestoneId&&epicProgress(e).pct<100);if(nm.length)F('',`${plural(nm.length,'epic')} not linked to a milestone`,nm.map(e=>e.title).join(', '),'Link each epic to the milestone it serves so forecasts include it.',['epic',nm[0].id,'Edit epic'])}
+  return done('The backlog is healthy: estimated, described, and deep enough for the next sprints.');
+}
+function lssFindings(){
+  const {F,done}=finder(),f=flowStats(),pa=bugPareto();
+  if(f.ct.length<5)F('','Not enough history for statistics yet',`${plural(f.ct.length,'ticket')} finished in the last 90 days with a start date.`,'Control limits need about 5 points, and 20 or more makes them reliable. Keep moving tickets through In progress so start dates are captured.',['go','flow','Flow metrics']);
+  else{
+    f.out.slice(-3).forEach(i=>{const t=f.done[i];F('bad',`Special-cause variation: ${t.key} took ${plural(f.ct[i],'day')}`,`Above the upper control limit of ${f.x.ucl.toFixed(1)} days. ${t.title}`,'Investigate this item on its own (5 Whys): something unusual happened that the normal process doesn’t explain.',['ticket',t.id,'Open'])});
+    if(f.shifts.length)F('warn','Process shift detected','8 or more tickets in a row landed on the same side of the mean cycle time.','The process has changed. Find what changed (team, scope, tooling) and decide whether to lock it in or reverse it.',['go','flow','Control chart']);
+    if(!f.usl)F('','No target cycle time set','Capability (Cpk) needs a limit that matters to the customer.','Set a target cycle time on the Flow metrics page, such as the turnaround stakeholders expect.',['go','flow','Set a target']);
+    else if(f.cpk!=null)F(f.cpk<1?'bad':f.cpk<1.33?'warn':'ok',`Process capability: Cpk ${f.cpk.toFixed(2)}`,`${f.over} of ${f.ct.length} tickets exceeded the ${f.usl}-day target (${f.dpmo.toLocaleString()} DPMO).`,
+      f.cpk<1?'The process can’t reliably hit the target. Cut variation first (smaller tickets, WIP limits), then the average.':f.cpk<1.33?'Marginal. Aim for 1.33 or better by reducing variation, not just speed.':'Capable against the target. Keep watching the control chart.',['go','flow','Flow metrics']);
+  }
+  f.aging.filter(x=>f.p85&&x.age>f.p85).slice(0,3).forEach(x=>F('warn',`${x.t.key} has been ${x.t.status==='review'?'in review':'in progress'} for ${plural(x.age,'day')}`,`Longer than 85% of recent tickets took to finish (${f.p85} days).`,'Swarm on it or split it; aging work is the earliest sign of a cycle-time outlier.',['ticket',x.t.id,'Open']));
+  if(f.little&&f.p85&&f.little>f.p85)F('warn','Too much work in progress',`${plural(f.wip.length,'item')} in progress at ${(f.thrDay*7).toFixed(1)} finished per week implies about ${Math.round(f.little)} days per item (Little’s Law).`,`Set a WIP limit of about ${plural(Math.max(1,Math.round(f.thrDay*(f.p50||1))),'item')} to bring cycle time down.`,['go','board','Sprint board']);
+  if(pa.rows.length>=2&&pa.rows[0].v/pa.tot>=.4)F('warn',`Pareto: “${pa.rows[0].k}” accounts for ${Math.round(pa.rows[0].v/pa.tot*100)}% of bugs`,`${plural(pa.rows[0].v,'bug')} in the last 6 months.`,'Focus root-cause work on this category first (fishbone, 5 Whys).',['go','flow','Pareto']);
+  const bugs6=tickets().filter(t=>t.type==='bug'&&t.createdAt>=addDays(TODAY,-42)).length,done6=tickets().filter(t=>isDone(t)&&t.type!=='bug'&&t.doneAt>=addDays(TODAY,-42)).length;
+  if(done6>=3&&bugs6/done6>.3)F('warn','High defect rate',`${plural(bugs6,'bug')} reported against ${plural(done6,'item')} delivered in the last 6 weeks.`,'Build quality in at the source: clearer acceptance criteria, pairing, and automated tests in the definition of done.',['go','tickets','Bugs & requests']);
+  const blk=tickets().filter(t=>!isDone(t)&&t.status!=='triage'&&blockers(t).length);
+  if(blk.length)F('warn',`Waiting waste: ${plural(blk.length,'ticket')} blocked`,blk.slice(0,6).map(t=>t.key).join(', '),'Map these dependencies on the Timeline and sequence the blocking work first.',['go','gantt','Timeline']);
+  if(f.leadAvg&&f.ctAvg&&f.leadAvg/f.ctAvg>3)F('',`Work waits about ${Math.round(f.leadAvg-f.ctAvg)} days before it starts`,`Lead time ${f.leadAvg.toFixed(1)} days vs. cycle time ${f.ctAvg.toFixed(1)} days.`,'Most lead time is queue. Limit what enters the backlog, or pull smaller batches more often.',null);
+  return done('The process looks stable and capable, with no waste signals in the data.');
+}
+function wasteRows(){
+  const f=flowStats(),a=activeSprint(),open=tickets().filter(t=>!isDone(t)&&t.status!=='triage'),v=velocity();
+  const bugs=tickets().filter(t=>t.type==='bug'&&!isDone(t)).length,blk=open.filter(t=>blockers(t).length).length;
+  const idle=a?S.members.filter(m=>!sprintTickets(a.id).some(t=>t.assignee===m.id&&!isDone(t))):[];
+  const jug=S.members.filter(m=>tickets().filter(t=>t.assignee===m.id&&(t.status==='inprogress'||t.status==='review')).length>=3);
+  const rev=tickets().filter(t=>t.status==='review'&&t.startedAt&&f.p50&&diff(t.startedAt,TODAY)+1>f.p50);
+  const depth=v?pts(open.filter(t=>!t.sprintId))/v:null;
+  return [['Defects',plural(bugs,'open bug'),bugs>5?'warn':bugs?'':'ok'],
+    ['Overproduction',`${plural(f.wip.length,'item')} started for ${plural(S.members.length,'person')}`,S.members.length&&f.wip.length>S.members.length*1.5?'warn':'ok'],
+    ['Waiting',plural(blk,'blocked ticket'),blk?'warn':'ok'],
+    ['Non-utilized talent',a?(idle.length?`${idle.map(m=>m.name).join(', ')} with nothing open in the sprint`:'Everyone has open sprint work'):'No sprint running',idle.length?'warn':a?'ok':'na'],
+    ['Transportation','Handoffs aren’t tracked in Throughline','na'],
+    ['Inventory',depth==null?'Needs velocity history':`${depth.toFixed(1)} sprints of backlog`,depth==null?'na':depth>6?'warn':'ok'],
+    ['Motion',jug.length?`${jug.map(m=>m.name).join(', ')} juggling 3+ active tickets`:'No one is juggling 3+ active tickets',jug.length?'warn':'ok'],
+    ['Extra processing',`${plural(rev.length,'ticket')} in review longer than the median cycle time`,rev.length?'warn':'ok']];
+}
+
+/* ---------- coaches: playbook outputs ---------- */
+function lastWorkday(){let d=addDays(TODAY,-1);while([0,6].includes(parse(d).getDay()))d=addDays(d,-1);return d}
+function standupText(){
+  const a=activeSprint(),prev=lastWorkday(),L=[`Daily standup, ${fmtDY(TODAY)}`],li=t=>`${t.key} ${t.title}`;
+  if(a){const p=sprintPulse(a);L.push(`${a.name}, day ${p.day} of ${p.len}: ${p.done} of ${p.total} points done. ${p.sig}`);if(a.goal)L.push('Sprint goal: '+a.goal)}
+  [...S.members.map(m=>[m.id,m.name]),[null,'Unassigned']].forEach(([id,name])=>{
+    const mine=tickets().filter(t=>(t.assignee||null)===id&&t.status!=='triage'),did=mine.filter(t=>isDone(t)&&t.doneAt>=prev),doing=mine.filter(t=>t.status==='inprogress'||t.status==='review'),blk=mine.filter(t=>!isDone(t)&&t.status!=='backlog'&&blockers(t).length);
+    if(id===null&&!did.length&&!doing.length&&!blk.length)return;
+    L.push('',name+':','  Done since '+fmtD(prev)+': '+(did.map(li).join('; ')||'nothing recorded'),'  Working on: '+(doing.map(t=>li(t)+(t.status==='review'?' (in review)':'')).join('; ')||'nothing in progress'));
+    if(blk.length)L.push('  Blocked: '+blk.map(t=>`${t.key} waiting on ${blockers(t).map(b=>b.key).join(', ')}`).join('; '))});
+  if(!S.members.length)L.push('','Add teammates to get a per-person breakdown.');
+  return L.join('\n');
+}
+function reviewText(){
+  const s=activeSprint()||sortedSprints().filter(x=>x.status==='closed').slice(-1)[0];if(!s)return 'Start a sprint to prepare sprint review notes.';
+  const f=sprintFacts(s),ts=sprintTickets(s.id),dn=ts.filter(isDone),op=ts.filter(t=>!isDone(t));
+  const L=[`Sprint review: ${s.name} (${fmtD(s.start)} to ${fmtD(s.end)})`,`Goal: ${s.goal||'none set'}`,`Committed ${f.committed} points; ${s.status==='closed'?'completed':'done so far'} ${f.completed}${f.sayDo!=null?` (${f.sayDo}%)`:''}.`,'',`Done (${dn.length}):`,...dn.map(t=>`  - ${t.key} ${t.title}`)];
+  if(op.length)L.push('',`Not done yet (${op.length}):`,...op.map(t=>`  - ${t.key} ${t.title} [${STL[t.status]}]`));
+  const ms=[...S.milestones].sort((a,b)=>a.date<b.date?-1:1).find(m=>m.date>=TODAY);if(ms){const r=msStatus(ms);L.push('',`Next milestone: ${ms.title}, ${fmtD(ms.date)}. ${r.st}${r.f.date?`, forecast ${fmtD(r.f.date)}`:''}.`)}
+  L.push('',`Velocity, last 3 sprints: ${velocity()||'not enough history'}.`,'','Questions for stakeholders:','  - Does what we built move you toward the outcome you care about?','  - What should change at the top of the backlog?');
+  return L.join('\n');
+}
+function dmaicText(){
+  const f=flowStats(),pa=bugPareto(),n=f.ct.length,fx=v=>n?(+v).toFixed(1):'—';
+  return [`DMAIC project charter: ${S.project.name} delivery cycle time`,`Drafted ${fmtDY(TODAY)} from Throughline data (last 90 days)`,'',
+   'DEFINE',`Problem: tickets take a mean of ${fx(f.x.m)} days from start to done (85th percentile ${n?f.p85:'—'} days)${f.usl?`, against a target of ${f.usl} days; ${f.over} of ${n} exceeded it`:''}.`,
+   `Goal: ${f.usl?`Cpk of 1.33 or better against the ${f.usl}-day target`:'set a target cycle time, then reach a Cpk of 1.33 against it'} within three sprints, with no points above the upper control limit.`,
+   `Scope: work in ${S.project.name} from In progress to Done. Out of scope: intake and triage time.`,'CTQ: cycle time per ticket (days, start to done).',`Team: ${S.members.map(m=>m.name+(m.role?' ('+m.role+')':'')).join(', ')||'add teammates'}`,'',
+   'MEASURE',`Sample: ${plural(n,'ticket')} finished in the last 90 days.`,`Mean ${fx(f.x.m)} days, sigma (moving range) ${fx(f.x.sig)}, UCL ${fx(f.x.ucl)}, LCL ${fx(f.x.lcl)}.`,
+   `Capability: ${f.cpk==null?'not computed (no target set, or too little data)':`Cpk ${f.cpk.toFixed(2)}, about ${(3*f.cpk).toFixed(1)} sigma short term, ${f.dpmo.toLocaleString()} DPMO observed`}.`,`Throughput ${(f.thrDay*7).toFixed(1)} items per week; ${f.wip.length} items in progress now.`,'',
+   'ANALYZE',`Special causes: ${f.out.length?f.out.map(i=>f.done[i].key+' ('+f.ct[i]+'d)').join(', '):'none above the UCL'}.`,`Defect Pareto: ${pa.rows.length?pa.rows.slice(0,3).map(r=>`${r.k} (${r.v})`).join(', '):'no bugs recorded'}.`,
+   `Aging work: ${f.aging.filter(x=>f.p85&&x.age>f.p85).map(x=>x.t.key+' ('+x.age+'d)').join(', ')||'none past the 85th percentile'}.`,`Waiting: ${plural(tickets().filter(t=>!isDone(t)&&blockers(t).length).length,'blocked ticket')}.`,'Next: 5 Whys on each special cause; fishbone on the top Pareto category.','',
+   'IMPROVE (candidate countermeasures)',`  - WIP limit of about ${plural(Math.max(1,Math.round(f.thrDay*(f.p50||1))),'item')} (Little’s Law at current throughput)`,'  - Split tickets over 8 points before they enter a sprint','  - Swarm on any item older than the 85th percentile','  - Add checks for the top defect category to the definition of done','',
+   'CONTROL','  - Review the control chart at every sprint review','  - Recalculate limits after 20 new points or a confirmed process change','  - Owner: ______    Review date: ______'].join('\n');
+}
+function brief(id,title,sub,text){return `<section class="panel"><div class="phead"><div><h2>${title}</h2>${sub?`<p class="small muted">${sub}</p>`:''}</div><button class="btn sm" data-act="copy" data-src="tx-${id}">Copy</button></div><pre class="brief" id="tx-${id}">${esc(text)}</pre></section>`}
+function scrumTools(){return brief('standup','Standup brief','Built from ticket activity since the last workday.',standupText())+brief('review','Sprint review notes','',reviewText())}
+function agileTools(){
+  const open=tickets().filter(t=>!isDone(t)&&t.status!=='triage'),bl=open.filter(t=>!t.sprintId).sort(byRank),v=velocity(),pc=fn=>open.length?Math.round(open.filter(fn).length/open.length*100)+'%':'—';
+  const ready=pts(bl.filter(t=>!notReady(t).length)),sz=open.map(t=>+t.points||0).filter(Boolean),q=bl.slice(0,15).map(t=>({t,why:notReady(t)})).filter(x=>x.why.length).slice(0,8),sd=sayDo();
+  return `<section class="panel"><h2>Backlog health</h2><div class="tiles" style="margin:12px 0 0"><div class="tile"><b>${pc(t=>+t.points>0)}</b><span>of open items estimated</span></div><div class="tile"><b>${pc(t=>String(t.desc||'').trim())}</b><span>have a description</span></div><div class="tile"><b>${v?(ready/v).toFixed(1):'—'}</b><span>sprints of ready work</span></div><div class="tile"><b>${sz.length?pctl(sz,50):'—'}</b><span>median item size, points</span></div><div class="tile"><b>${sd==null?'—':sd+'%'}</b><span>say/do, last 3 sprints</span></div></div></section>
+   <section class="panel"><h2>Refinement queue</h2><p class="small muted">Top-ranked backlog items that aren’t ready for a sprint.</p>${q.length?`<ul class="list1">${q.map(x=>`<li><span class="key">${esc(x.t.key)}</span><div class="sp"><button class="link" data-act="ticket" data-id="${x.t.id}">${esc(x.t.title)}</button><div class="small muted">${esc(x.why.join(' · '))}</div></div><span class="pts">${+x.t.points||0}</span></li>`).join('')}</ul>`:'<p class="muted">The top of the backlog is ready.</p>'}</section>`;
+}
+function lssTools(){
+  const lab={ok:'Low',warn:'Look into',na:'Not measured','':'Watch'};
+  return `<section class="panel"><div class="phead"><div><h2>The 8 wastes (DOWNTIME)</h2><p class="small muted">What the data can show for each Lean waste.</p></div><button class="btn sm ghost" data-act="go" data-v="flow">Flow metrics</button></div><div class="tblwrap"><table><thead><tr><th>Waste</th><th>Signal in this project</th><th></th></tr></thead><tbody>${wasteRows().map(([w,s,c])=>`<tr><td><b>${w[0]}</b>${w.slice(1)}</td><td class="small">${esc(s)}</td><td><span class="chip ${c==='na'?'':c}">${lab[c]}</span></td></tr>`).join('')}</tbody></table></div></section>`+
+   brief('dmaic','DMAIC charter draft','Pre-filled from your flow metrics. Edit it before you share it.',dmaicText());
+}
+
+/* ---------- coaches: Claude ---------- */
+const LS_AI='throughline:ai';
+const AI={key:'',model:'claude-opus-5-5'};try{Object.assign(AI,JSON.parse(localStorage.getItem(LS_AI)||'{}'))}catch(e){}
+const AI_MODELS=[['claude-opus-5-5','Claude Opus 5.5 (most capable)'],['claude-sonnet-5-5','Claude Sonnet 5.5 (faster, lower cost)'],['claude-haiku-4-5','Claude Haiku 4.5 (fastest)']];
+const CHAT={};let AISTREAM=null,sdkP=null;
+const sdk=()=>sdkP=sdkP||import('https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk/+esm').then(m=>m.default||m.Anthropic);
+function aiSave(){try{localStorage.setItem(LS_AI,JSON.stringify(AI))}catch(e){toast('This browser is blocking storage, so the key won’t survive a reload.')}}
+function openAiSettings(){
+  openForm({title:'Connect Claude',values:{key:AI.key,model:AI.model},saveLabel:'Save',
+   fields:[{k:'key',label:'Anthropic API key',type:'password',wide:true,hint:'Create one at console.anthropic.com. It’s stored only in this browser.'},{k:'model',label:'Model',type:'select',options:AI_MODELS,wide:true}],
+   note:'<p>When you ask a coach a question, this browser sends it straight to api.anthropic.com along with a snapshot of the current project: tickets, sprints, epics, milestones, risks, retros, teammate names, and the findings on the page. Nothing goes anywhere else. Usage is billed to your API key.</p>',
+   onSave(v){const k=(v.key||'').trim();if(!k){toast('Paste an API key, or cancel.');return false}AI.key=k;AI.model=v.model||'claude-opus-5-5';aiSave();render();toast('Claude connected')},
+   delLabel:'Forget key',onDelete:AI.key?()=>{AI.key='';aiSave();render();toast('API key removed from this browser')}:null});
+}
+function aiSnapshot(kind){
+  const nm=id=>(member(id)||{}).name||null,ep=id=>(byId(S.epics,id)||{}).title||null,sn=id=>(byId(S.sprints,id)||{}).name||null,r1=v=>Math.round(v*10)/10;
+  const tk=t=>({key:t.key,title:t.title,type:t.type,status:t.status,priority:t.priority,severity:t.severity||undefined,points:+t.points||0,assignee:nm(t.assignee),sprint:sn(t.sprintId),epic:ep(t.epicId),
+    blockedBy:(t.deps||[]).map(id=>T[id]&&T[id].key).filter(Boolean),start:t.start||undefined,due:t.due||undefined,created:t.createdAt||undefined,started:t.startedAt||undefined,done:t.doneAt||undefined,
+    votes:+t.votes||undefined,labels:t.labels||undefined,description:t.desc?String(t.desc).slice(0,300):undefined});
+  const open=tickets().filter(t=>!isDone(t)).sort((a,b)=>(a.status==='triage')-(b.status==='triage')||byRank(a,b)),rec=tickets().filter(t=>isDone(t)&&t.doneAt>=addDays(TODAY,-42)).sort((a,b)=>a.doneAt<b.doneAt?1:-1);
+  const f=flowStats(),pa=bugPareto(),a=activeSprint(),openW=open.filter(t=>t.status!=='triage'),mc=monteCarlo(openW.length,f.daily);
+  return {today:TODAY,project:{name:S.project.name,key:S.project.key,objective:S.project.desc||''},
+    team:S.members.map(m=>({name:m.name,role:m.role||'',pointsPerSprint:+m.capacity||0})),velocityLast3Sprints:velocity(),sayDoLast3SprintsPct:sayDo(),
+    sprints:sortedSprints().map(s=>({name:s.name,start:s.start,end:s.end,status:s.status,goal:s.goal||'',committed:+s.committed||undefined,completed:s.status==='closed'?+s.completed||0:undefined,capacity:sprintCap(s)})),
+    activeSprint:a?(p=>({name:a.name,day:p.day,length:p.len,committed:p.committed,pointsNow:p.total,pointsDone:p.done,burndownSignal:p.sig}))(sprintPulse(a)):null,
+    epics:S.epics.map(e=>{const p=epicProgress(e);return {title:e.title,start:e.start,end:e.end,milestone:(byId(S.milestones,e.milestoneId)||{}).title||null,points:p.tot,donePoints:p.done}}),
+    milestones:S.milestones.map(m=>{const r=msStatus(m);return {title:m.title,date:m.date,status:r.st,forecast:r.f.date,remainingPoints:r.f.rem}}),
+    risks:S.risks.map(x=>({type:x.kind,title:x.title,status:x.status,likelihood:x.likelihood,impact:x.impact,owner:nm(x.owner),mitigation:x.mitigation||''})),
+    retrospectives:(S.retros||[]).map(x=>({sprint:sn(x.sprintId),wentWell:x.well.map(i=>i.text),toImprove:x.improve.map(i=>i.text),actions:x.actions.map(i=>({text:i.text,ticket:i.ticketId&&T[i.ticketId]?T[i.ticketId].key:null,done:!!i.done}))})),
+    flowMetrics:{sampleSize:f.ct.length,meanCycleDays:r1(f.x.m),sigmaFromMovingRange:r1(f.x.sig),ucl:r1(f.x.ucl),lcl:r1(f.x.lcl),p50:f.p50,p85:f.p85,p95:f.p95,targetCycleDays:f.usl||null,
+      cpk:f.cpk==null?null:Math.round(f.cpk*100)/100,dpmo:f.dpmo,aboveUcl:f.out.map(i=>({key:f.done[i].key,days:f.ct[i]})),processShiftDetected:f.shifts.length>0,wipNow:f.wip.length,
+      throughputPerWeek:r1(f.thrDay*7),avgLeadDays:r1(f.leadAvg),agingWip:f.aging.slice(0,10).map(x=>({key:x.t.key,status:x.t.status,ageDays:x.age})),
+      bugPareto:pa.rows.map(r=>({category:r.k,bugs:r.v,cumulativePct:Math.round(r.cum)})),
+      monteCarloAllOpenWork:mc?{items:openW.length,p50:addDays(TODAY,mc.p50),p85:addDays(TODAY,mc.p85),p95:addDays(TODAY,mc.p95)}:null},
+    openTickets:open.slice(0,150).map(tk),openTicketsOmitted:Math.max(0,open.length-150),
+    doneLast6Weeks:rec.slice(0,60).map(tk),doneLast6WeeksOmitted:Math.max(0,rec.length-60),
+    findingsOnThisPage:AGENTS[kind].find().map(x=>({severity:x.cls||'info',title:x.t,detail:x.d||'',recommendation:x.fix||''}))};
+}
+function aiParams(kind,messages){
+  const model=AI.model||'claude-opus-5-5',p={model,max_tokens:16000,system:AGENTS[kind].sys,messages};
+  if(model!=='claude-haiku-4-5')p.output_config={effort:'medium'};
+  // on a safety-classifier refusal the API re-runs the request on Anthropic's recommended fallback model
+  if(model==='claude-opus-5-5'||model==='claude-sonnet-5-5'){p.fallbacks='default';p.betas=['server-side-fallback-2026-07-01']}
+  return p;
+}
+async function askAgent(kind,text){
+  text=String(text||'').trim();if(!text||UI.aiPending||!S)return;
+  if(!AI.key){openAiSettings();return}
+  const k=UI.cur+':'+kind,h=CHAT[k]=CHAT[k]||[];
+  h.push({role:'user',shown:text,content:h.length?text:`Project snapshot as JSON, taken ${TODAY}:\n\n${JSON.stringify(aiSnapshot(kind))}\n\n${text}`});
+  UI.aiDraft='';UI.aiPending={k,text:''};render();
+  const fail=m=>{h.pop();UI.aiPending=null;AISTREAM=null;UI.aiDraft=text;render();if(m)toast(m)};
+  let Anthropic;try{Anthropic=await sdk()}catch(e){sdkP=null;return fail('Couldn’t load the Anthropic SDK. Check your connection and try again.')}
+  try{
+    const client=new Anthropic({apiKey:AI.key,dangerouslyAllowBrowser:true});
+    const stream=AISTREAM=client.beta.messages.stream(aiParams(kind,h.map(m=>({role:m.role,content:m.content}))));
+    stream.on('text',d=>{if(!UI.aiPending)return;UI.aiPending.text+=d;const el=$('#aiLive');if(el){el.innerHTML=md(UI.aiPending.text);const am=$('#aiMsgs');if(am)am.scrollTop=am.scrollHeight}});
+    const msg=await stream.finalMessage();
+    if(msg.stop_reason==='refusal')return fail('Claude declined to answer that. Try rephrasing the question.');
+    // after a mid-stream fallback, only the content after the last fallback marker is the answer
+    const bl=msg.content||[],fi=bl.map(b=>b.type).lastIndexOf('fallback');
+    let out=bl.slice(fi+1).filter(b=>b.type==='text').map(b=>b.text).join('').trim();
+    if(!out)return fail('Claude returned an empty answer. Try again.');
+    if(msg.stop_reason==='max_tokens')out+='\n\n*(This answer hit the length limit and was cut off.)*';
+    h.push({role:'assistant',content:out});UI.aiPending=null;AISTREAM=null;render();
+  }catch(e){
+    if(e instanceof Anthropic.APIUserAbortError)return fail('Stopped.');
+    if(e instanceof Anthropic.AuthenticationError)return fail('Anthropic rejected the API key. Update it in Claude settings.');
+    if(e instanceof Anthropic.PermissionDeniedError)return fail('This API key doesn’t have access to that model. Pick another in Claude settings.');
+    if(e instanceof Anthropic.NotFoundError)return fail('That model wasn’t found. Pick another in Claude settings.');
+    if(e instanceof Anthropic.RateLimitError)return fail('The Anthropic API is rate limiting this key. Wait a moment and try again.');
+    if(e instanceof Anthropic.APIConnectionError)return fail('Couldn’t reach the Anthropic API. Check your connection.');
+    if(e instanceof Anthropic.APIError)return fail(`Anthropic API error${e.status?' '+e.status:''}: ${e.message||'unknown error'}`);
+    fail('Something went wrong: '+(e&&e.message||e));
+  }
+}
+function md(s){
+  const inl=x=>esc(x).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/(^|[^*\w])\*([^*\s][^*]*)\*/g,'$1<i>$2</i>');
+  let o='',list=null,code=null,tbl=false,m;
+  const close=()=>{if(list){o+=`</${list}>`;list=null}if(tbl){o+='</table></div>';tbl=false}};
+  for(const ln of String(s).split('\n')){
+    if(code!==null){if(/^\s*```/.test(ln)){o+=`<pre>${esc(code)}</pre>`;code=null}else code+=(code?'\n':'')+ln;continue}
+    if(/^\s*```/.test(ln)){close();code='';continue}
+    if(/^\s*\|.*\|\s*$/.test(ln)){if(/^\s*\|[\s:|-]+\|\s*$/.test(ln))continue;const cells=ln.trim().slice(1,-1).split('|').map(c=>inl(c.trim()));
+      if(!tbl){close();tbl=true;o+=`<div class="tblwrap"><table><tr>${cells.map(c=>`<th>${c}</th>`).join('')}</tr>`}else o+=`<tr>${cells.map(c=>`<td>${c}</td>`).join('')}</tr>`;continue}
+    if(/^\s*(-{3,}|\*{3,}|_{3,})\s*$/.test(ln)){close();continue}
+    if(m=ln.match(/^#{1,6}\s+(.*)/)){close();o+=`<h4>${inl(m[1])}</h4>`;continue}
+    if(m=ln.match(/^\s*[-*•]\s+(.*)/)){if(list!=='ul'){close();list='ul';o+='<ul>'}o+=`<li>${inl(m[1])}</li>`;continue}
+    if(m=ln.match(/^\s*\d+[.)]\s+(.*)/)){if(list!=='ol'){close();list='ol';o+='<ol>'}o+=`<li>${inl(m[1])}</li>`;continue}
+    close();if(ln.trim())o+=`<p>${inl(ln)}</p>`;
+  }
+  if(code!==null)o+=`<pre>${esc(code)}</pre>`;close();return o;
+}
+
+const AI_BASE=`You are a coach built into Throughline, a browser-based project planning tool with a roadmap, Gantt timeline, backlog, sprint planning, sprint board, bug and request intake, team capacity, a RAID risk log, flow metrics, retrospectives, and reports.
+
+The user's first message starts with a JSON snapshot of their current project, taken when the conversation began. Points are story points. Ticket statuses run triage → backlog → todo → inprogress → review → done. Descriptions are trimmed to 300 characters, and openTicketsOmitted / doneLast6WeeksOmitted say how many tickets were left out of those lists. findingsOnThisPage holds the rule-based checks the user is looking at next to this chat.
+
+Ground what you say in the snapshot: cite ticket keys, sprint names, dates, and numbers. When the data can't support a conclusion, say what's missing instead of guessing. You can't change the project yourself, so when you recommend a change, say where in Throughline to make it (for example, "split PRJ-14 in the Backlog" or "set a sprint goal in Sprint planning").
+
+Answer like a senior practitioner talking to a colleague: lead with the answer, keep it practical, and prefer a short, prioritized list of actions to theory. Use Markdown with brief headings and bullets. Keep routine answers under about 350 words; go longer when the user asks for a document such as a charter, agenda, or plan.`;
+const AGENTS={
+  scrum:{name:'Scrum Master',blurb:'Guards the sprint: the goal, the commitment, impediments, work in progress, and the Scrum events (planning, daily scrum, review, and retrospective).',
+    how:'Checked in your browser against the current sprint, the board, and your retro history.',find:scrumFindings,tools:scrumTools,
+    prompts:['Run today’s standup: what should we talk about?','Is the sprint goal at risk, and what should we do about it?','Plan a 45-minute retrospective for the last sprint','Draft talking points for the sprint review'],
+    sys:AI_BASE+`\n\nYour role: an experienced Professional Scrum Master. You focus on the sprint goal, transparency, inspection and adaptation, removing impediments, and making the Scrum events useful. You coach the team toward self-management rather than directing it, and you follow the intent of the Scrum Guide without being dogmatic.`},
+  agile:{name:'Agile Coach',blurb:'Looks after the backlog and the system around the team: refinement and readiness, estimation, prioritization by value, velocity and predictability, and roadmap realism.',
+    how:'Checked in your browser against the backlog, sprint history, epics, and milestones.',find:agileFindings,tools:agileTools,
+    prompts:['Which backlog items should we refine or split next?','Rank the top of the backlog by WSJF and explain the order','Are our milestones realistic given our velocity?','What one change would help this team most?'],
+    sys:AI_BASE+`\n\nYour role: a pragmatic agile coach who draws on Scrum, Kanban, XP, and lightweight scaled-agile ideas such as WSJF. You focus on backlog health and refinement (INVEST, definition of ready and done, story splitting), estimation and probabilistic forecasting, prioritization by value and cost of delay, sustainable pace, and whether the roadmap is realistic.`},
+  lss:{name:'Lean Six Sigma',blurb:'Treats delivery as a process to measure and improve: cycle-time variation, process capability, flow and work in progress, the 8 wastes, and root causes of defects.',
+    how:'Computed in your browser from cycle times, throughput, WIP, and bug history.',find:lssFindings,tools:lssTools,
+    prompts:['Draft a DMAIC charter to reduce our cycle time','Run a 5 Whys on our worst cycle-time outliers','Where is the waste in our process?','Build a SIPOC for how work moves through this team'],
+    sys:AI_BASE+`\n\nYour role: a Lean Six Sigma Black Belt applying Lean and Six Sigma to software delivery. You use DMAIC, SIPOC, value-stream thinking, the 8 wastes (DOWNTIME), 5 Whys and fishbone analysis, Pareto analysis, and statistical process control. flowMetrics in the snapshot holds cycle times (start to done, inclusive days, last 90 days) with XmR control limits, Cpk against the team's target, aging WIP, the bug Pareto, and a Monte Carlo forecast. Be precise with statistics, distinguish special-cause from common-cause variation, and say when a sample is too small to support a conclusion.`}
+};
+
+function findingsHtml(fs){return `<ul class="list1 finds">${fs.map(f=>`<li><span class="dot" style="background:${f.cls==='bad'?'var(--bad)':f.cls==='warn'?'var(--warn)':f.cls==='ok'?'var(--ok)':'var(--muted)'}"></span><div class="sp"><b>${esc(f.t)}</b>${f.d?`<div class="small muted">${esc(f.d)}</div>`:''}${f.fix?`<div class="small fix">${esc(f.fix)}</div>`:''}</div>${f.a?`<button class="btn sm ghost" data-act="${f.a[0]}" ${f.a[0]==='go'?`data-v="${f.a[1]}"`:`data-id="${f.a[1]}"`}>${esc(f.a[2])}</button>`:''}</li>`).join('')}</ul>`}
+function chatPanel(kind){
+  const A=AGENTS[kind];
+  if(!AI.key)return `<section class="panel chat"><h2>Ask the ${A.name} coach</h2><p class="muted" style="margin:8px 0 14px">Connect Claude to talk this project through: why something is off track, what to do next, or a draft agenda, charter, or plan grounded in your data.</p><div><button class="btn pri" data-act="ai-settings">Connect Claude</button></div><p class="small muted" style="margin-top:12px">Uses your own Anthropic API key, which is stored only in this browser. The findings and playbook on this page work without it.</p></section>`;
+  const k=UI.cur+':'+kind,h=CHAT[k]||[],p=UI.aiPending&&UI.aiPending.k===k?UI.aiPending:null,busy=!!UI.aiPending;
+  const msgs=h.map(m=>`<div class="msg ${m.role}">${m.role==='user'?esc(m.shown||m.content):md(m.content)}</div>`).join('')+(p?`<div class="msg assistant" id="aiLive">${p.text?md(p.text):'<span class="muted">Thinking…</span>'}</div>`:'');
+  return `<section class="panel chat"><div class="phead"><h2>Ask the ${A.name} coach</h2><div style="display:flex;gap:6px">${h.length&&!busy?`<button class="btn sm ghost" data-act="ai-reset" data-k="${kind}" title="Start over with a fresh project snapshot">New conversation</button>`:''}<button class="btn sm ghost" data-act="ai-settings">Claude settings</button></div></div>
+   <div class="msgs" id="aiMsgs">${msgs||'<p class="small muted">Ask anything about this project, or start with one of these:</p>'}</div>
+   ${!h.length&&!p?`<div class="sugs">${A.prompts.map(q=>`<button class="btn sm" data-act="ai-ask" data-k="${kind}" data-q="${esc(q)}"${busy?' disabled':''}>${esc(q)}</button>`).join('')}</div>`:''}
+   <div class="ain"><textarea id="aiIn" rows="2" placeholder="Ask the ${A.name} coach. Enter to send, Shift+Enter for a new line." data-chg="ai-draft" aria-label="Message"${busy?' disabled':''}>${esc(UI.aiDraft||'')}</textarea>${p?'<button class="btn" data-act="ai-stop">Stop</button>':`<button class="btn pri" data-act="ai-send" data-k="${kind}"${busy?' disabled':''}>Send</button>`}</div>
+   <p class="small muted" style="margin-top:8px">${esc((AI_MODELS.find(x=>x[0]===AI.model)||[,AI.model])[1])}. Each new conversation sends a fresh project snapshot.</p></section>`;
+}
+function vAgent(kind){
+  const A=AGENTS[kind],fs=A.find(),nb=fs.filter(f=>f.cls==='bad').length,nw=fs.filter(f=>f.cls==='warn').length;
+  return head(A.name,A.blurb)+`<div class="agentgrid"><div class="stack"><section class="panel"><div class="phead"><h2>Findings</h2><span class="chip ${nb?'bad':nw?'warn':'ok'}">${nb||nw?[nb&&nb+' urgent',nw&&nw+' to look at'].filter(Boolean).join(', '):'All clear'}</span></div><p class="small muted" style="margin:-4px 0 4px">${esc(A.how)}</p>${findingsHtml(fs)}</section>${A.tools()}</div>${chatPanel(kind)}</div>`;
+}
+
+/* ---------- chrome ---------- */
+function renderNav(){
+  const tri=S?tickets().filter(t=>t.status==='triage').length:0,ids=projOrder(),port=UI.view==='portfolio'||!S;
+  $('#nav').innerHTML=`<div class="brand"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><rect x="1" y="3" width="12" height="4" rx="2" fill="var(--accent)"/><rect x="6" y="9" width="14" height="4" rx="2" fill="var(--accent)" opacity=".6"/><rect x="3" y="15" width="9" height="4" rx="2" fill="var(--accent)" opacity=".35"/></svg><span>Throughline</span></div>
+   <div class="navgroup"><button class="navbtn" data-act="go" data-v="portfolio"${port?' aria-current="page"':''}><span>All projects</span><span class="small muted">${ids.length}</span></button>
+   ${S?`<label class="projsel"><span>Current project</span><select data-chg="switch-project" aria-label="Current project">${ids.map(id=>`<option value="${id}"${id===UI.cur?' selected':''}>${esc(PS[id].project.name)}</option>`).join('')}</select></label>`:''}</div>`+
+   (S?NAV.map(([g,items])=>`<div class="navgroup"><span>${g}</span>${items.map(([k,l])=>`<button class="navbtn" data-act="go" data-v="${k}"${!port&&UI.view===k?' aria-current="page"':''}><span>${l}</span>${k==='tickets'&&tri?`<span class="count" title="${tri} in triage">${tri}</span>`:''}</button>`).join('')}</div>`).join(''):'');
+}
+function renderTop(){
+  $('#top').style.display='';
+  if(!S||UI.view==='portfolio'){$('#top').innerHTML=`<div class="proj"><h1>All projects</h1><small>${plural(projOrder().length,'project')}, saved in this browser</small></div><span class="sp"></span><button class="btn pri" data-act="new-project">New project</button>`;return}
+  const a=activeSprint();
+  $('#top').innerHTML=`<button class="proj" data-act="settings" title="Project settings"><h1>${esc(S.project.name)}</h1><small>${a?`${esc(a.name)}, day ${Math.max(0,diff(a.start,TODAY)+1)} of ${diff(a.start,a.end)+1}`:'No active sprint'}, saved in this browser</small></button><span class="sp"></span><button class="btn" data-act="new-ticket" data-type="bug">Report bug</button><button class="btn pri" data-act="new-ticket" title="Shortcut: N">New ticket</button>`;
+}
+function render(){
+  if(GD){pendingRender=true;return}
+  const ae=document.activeElement,fid=ae&&ae.id,sel=ae&&'selectionStart' in ae?[ae.selectionStart,ae.selectionEnd]:null;
+  const scroller=$('.gscroll'),gs=scroller?[scroller.scrollLeft,scroller.scrollTop]:null;
+  renderNav();renderTop();
+  $('#main').innerHTML=(!S||UI.view==='portfolio')?vPortfolio():(VIEWS[UI.view]||vDash)();
+  if(fid){const el=document.getElementById(fid);if(el&&el!==document.body){el.focus();if(sel&&el.setSelectionRange)try{el.setSelectionRange(sel[0],sel[1])}catch(e){}}}
+  const am=$('#aiMsgs');if(am)am.scrollTop=am.scrollHeight;
+  const ns=$('.gscroll');
+  if(ns){if(gs){ns.scrollLeft=gs[0];ns.scrollTop=gs[1]}else if(!ns.dataset.init){const x=ns.querySelector('.gantt');const t=[...ns.querySelectorAll('line[stroke="var(--bad)"]')][0];if(t)ns.scrollLeft=Math.max(0,+t.getAttribute('x1')-450)}}
+}
+let toastT;function toast(m){const el=$('#toast');el.textContent=m;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2800)}
+
+/* ---------- forms ---------- */
+let FORM=null;
+function field(f,v){const id='f_'+f.k,val=v??'';let inp;
+  if(f.type==='select')inp=`<select id="${id}" name="${f.k}">${f.options.map(([ov,ol])=>`<option value="${esc(ov)}"${String(ov)===String(val)?' selected':''}>${esc(ol)}</option>`).join('')}</select>`;
+  else if(f.type==='textarea')inp=`<textarea id="${id}" name="${f.k}" rows="4">${esc(val)}</textarea>`;
+  else inp=`<input id="${id}" name="${f.k}" type="${f.type||'text'}" value="${esc(val)}"${f.type==='number'?` min="${f.min??0}" step="1"${f.max!=null?` max="${f.max}"`:''}`:''}${f.req?' required':''}>`;
+  return `<label class="fld${f.wide?' wide':''}" for="${id}"><span>${esc(f.label)}</span>${inp}${f.hint?`<small>${esc(f.hint)}</small>`:''}</label>`}
+function openForm(cfg){FORM=cfg;const m=$('#modal');
+  m.innerHTML=`<div class="scrim" data-act="close"></div><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlgT"><form id="dlgForm" novalidate><header><h2 id="dlgT">${esc(cfg.title)}</h2><button type="button" class="x" data-act="close" aria-label="Close">×</button></header>${cfg.fields.length?`<div class="fgrid">${cfg.fields.map(f=>field(f,cfg.values?.[f.k])).join('')}</div>`:''}${cfg.note?`<div class="dnote">${cfg.note}</div>`:''}<footer>${cfg.onDelete?`<button type="button" class="btn danger" data-act="form-del">${esc(cfg.delLabel||'Delete')}</button>`:''}<span class="sp"></span><button type="button" class="btn ghost" data-act="close">Cancel</button><button type="submit" class="btn pri">${esc(cfg.saveLabel||'Save')}</button></footer></form></div>`;
+  m.hidden=false;setTimeout(()=>{const f=m.querySelector('.fgrid [name]')||m.querySelector('[type=submit]');f&&f.focus()},30)}
+function closeModal(){$('#modal').hidden=true;$('#modal').innerHTML='';FORM=null}
+function confirmBox(title,note,label,fn){openForm({title,fields:[],note:`<p style="color:var(--ink)">${note}</p>`,saveLabel:label,onSave:fn})}
+
+function openTicket(id,preset={}){
+  const isNew=!id||!T[id];const t=isNew?{type:'story',status:'backlog',priority:'P2',points:3,...preset}:T[id];
+  const sprints=sortedSprints().filter(s=>s.status!=='closed'||s.id===t.sprintId);
+  const fields=[{k:'title',label:'Title',wide:true,req:true},{k:'type',label:'Type',type:'select',options:TYPES},{k:'status',label:'Status',type:'select',options:STATUSES},
+   {k:'priority',label:'Priority',type:'select',options:PRI},{k:'severity',label:'Severity (bugs)',type:'select',options:[['','—'],...SEV]},
+   {k:'points',label:'Story points',type:'number'},{k:'assignee',label:'Assignee',type:'select',options:[['','Unassigned'],...S.members.map(m=>[m.id,m.name])]},
+   {k:'sprintId',label:'Sprint',type:'select',options:[['','Backlog'],...sprints.map(s=>[s.id,s.name+(s.status==='active'?' (active)':'')])]},
+   {k:'epicId',label:'Epic',type:'select',options:[['','No epic'],...S.epics.map(e=>[e.id,e.title])]},
+   {k:'start',label:'Start date',type:'date'},{k:'due',label:'Due date',type:'date'},
+   {k:'deps',label:'Blocked by',hint:'Ticket keys, comma-separated, e.g. '+S.project.key+'-4'},{k:'votes',label:'Votes (requests)',type:'number'},
+   {k:'reporter',label:'Reported by'},{k:'labels',label:'Labels'},{k:'desc',label:'Description',type:'textarea',wide:true}];
+  const values={...t,deps:(t.deps||[]).map(d=>T[d]&&T[d].key).filter(Boolean).join(', ')};
+  let note='';if(!isNew){const bl=blockers(t),bk=tickets().filter(x=>(x.deps||[]).includes(t.id));
+    note=`<p>Created ${fmtDY(t.createdAt)}${t.startedAt?`, started ${fmtD(t.startedAt)}`:''}${t.doneAt?`, done ${fmtD(t.doneAt)}`:''}.</p>${bl.length?`<p style="color:var(--bad)">Blocked by ${bl.map(b=>esc(b.key)).join(', ')}.</p>`:''}${bk.length?`<p>Blocks ${bk.map(b=>esc(b.key)).join(', ')}.</p>`:''}`}
+  openForm({title:isNew?(t.type==='bug'?'Report a bug':t.type==='feature'?'Request a feature':'New ticket'):t.key,fields,values,note,saveLabel:isNew?'Create ticket':'Save changes',
+    onSave(v){
+      if(!v.title||!v.title.trim()){toast('Add a title to save this ticket.');return false}
+      if(v.start&&v.due&&v.due<v.start){toast('The due date is before the start date.');return false}
+      const keys=String(v.deps||'').split(',').map(s=>s.trim().toUpperCase()).filter(Boolean);
+      const byKey=Object.fromEntries(tickets().map(x=>[x.key.toUpperCase(),x.id]));
+      const bad=keys.filter(k=>!byKey[k]);if(bad.length){toast('No ticket with key '+bad.join(', ')+'.');return false}
+      const nt=isNew?{id:uid(),key:S.project.key+'-'+(S.nextNum++),createdAt:TODAY,rank:maxRank()+1,startedAt:null,doneAt:null}:clone(t);
+      Object.assign(nt,{title:v.title.trim(),type:v.type,priority:v.priority,severity:v.severity||null,points:+v.points||0,assignee:v.assignee||null,epicId:v.epicId||null,
+        start:v.start||null,due:v.due||null,deps:keys.map(k=>byKey[k]).filter(x=>x!==nt.id),votes:+v.votes||0,reporter:v.reporter||'',labels:v.labels||'',desc:v.desc||''});
+      nt.sprintId=v.sprintId||null;setStatus(nt,v.status);if(nt.sprintId&&(nt.status==='backlog'||nt.status==='triage'))nt.status='todo';
+      if(isNew)saveWs();saveT(nt);render();toast(isNew?`Created ${nt.key}`:`Saved ${nt.key}`);
+    },
+    onDelete:isNew?null:()=>{tickets().forEach(x=>{if((x.deps||[]).includes(t.id)){const c=clone(x);c.deps=c.deps.filter(d=>d!==t.id);saveT(c)}});delT(t.id);render();toast(`Deleted ${t.key}`)}});
+}
+function openEpic(id){const isNew=!id;const e=isNew?{color:COLORS[S.epics.length%COLORS.length][0],start:TODAY,end:addDays(TODAY,27)}:byId(S.epics,id);
+  openForm({title:isNew?'New epic':e.title,values:e,saveLabel:isNew?'Create epic':'Save changes',fields:[{k:'title',label:'Title',wide:true,req:true},{k:'start',label:'Start',type:'date'},{k:'end',label:'End',type:'date'},{k:'color',label:'Color',type:'select',options:COLORS},{k:'milestoneId',label:'Milestone',type:'select',options:[['','None'],...S.milestones.map(m=>[m.id,m.title])]},{k:'desc',label:'Description',type:'textarea',wide:true}],
+   onSave(v){if(!v.title.trim()||!v.start||!v.end){toast('An epic needs a title, start, and end.');return false}if(v.end<v.start){toast('The end date is before the start date.');return false}
+     if(isNew)S.epics.push({id:uid(),...v,title:v.title.trim(),milestoneId:v.milestoneId||null});else Object.assign(e,v,{milestoneId:v.milestoneId||null});saveWs();render();toast(isNew?'Epic created':'Epic saved')},
+   onDelete:isNew?null:()=>{S.epics=S.epics.filter(x=>x.id!==id);tickets().filter(t=>t.epicId===id).forEach(t=>{const c=clone(t);c.epicId=null;saveT(c)});saveWs();render();toast('Epic deleted')}})}
+function openMilestone(id){const isNew=!id;const m=isNew?{date:addDays(TODAY,30)}:byId(S.milestones,id);
+  openForm({title:isNew?'New milestone':m.title,values:m,saveLabel:isNew?'Create milestone':'Save changes',fields:[{k:'title',label:'Title',req:true},{k:'date',label:'Date',type:'date'},{k:'desc',label:'What done looks like',type:'textarea',wide:true}],
+   onSave(v){if(!v.title.trim()||!v.date){toast('A milestone needs a title and date.');return false}if(isNew)S.milestones.push({id:uid(),...v,title:v.title.trim()});else Object.assign(m,v);saveWs();render();toast(isNew?'Milestone created':'Milestone saved')},
+   onDelete:isNew?null:()=>{S.milestones=S.milestones.filter(x=>x.id!==id);S.epics.forEach(e=>{if(e.milestoneId===id)e.milestoneId=null});saveWs();render();toast('Milestone deleted')}})}
+function openRisk(id){const isNew=!id;const r=isNew?{kind:'risk',likelihood:2,impact:2,status:'open'}:byId(S.risks,id);
+  openForm({title:isNew?'Log an item':r.title,values:r,saveLabel:isNew?'Log item':'Save changes',fields:[{k:'title',label:'Description',wide:true,req:true},{k:'kind',label:'Type',type:'select',options:RAID},{k:'status',label:'Status',type:'select',options:[['open','Open'],['mitigating','Mitigating'],['closed','Closed']]},{k:'likelihood',label:'Likelihood',type:'select',options:[[1,'1 Low'],[2,'2 Medium'],[3,'3 High']]},{k:'impact',label:'Impact',type:'select',options:[[1,'1 Low'],[2,'2 Medium'],[3,'3 High']]},{k:'owner',label:'Owner',type:'select',options:[['','Unassigned'],...S.members.map(m=>[m.id,m.name])]},{k:'mitigation',label:'Mitigation or next step',type:'textarea',wide:true}],
+   onSave(v){if(!v.title.trim()){toast('Describe the item to save it.');return false}v.likelihood=+v.likelihood;v.impact=+v.impact;v.owner=v.owner||null;if(isNew)S.risks.push({id:uid(),...v});else Object.assign(r,v);saveWs();render();toast(isNew?'Item logged':'Item saved')},
+   onDelete:isNew?null:()=>{S.risks=S.risks.filter(x=>x.id!==id);saveWs();render();toast('Item deleted')}})}
+function openMember(id){const isNew=!id;const m=isNew?{capacity:10,color:COLORS[S.members.length%COLORS.length][0]}:member(id);
+  openForm({title:isNew?'Add teammate':m.name,values:m,saveLabel:isNew?'Add teammate':'Save changes',fields:[{k:'name',label:'Name',req:true},{k:'role',label:'Role'},{k:'capacity',label:'Points per sprint',type:'number',hint:'What they typically finish in a full sprint'},{k:'color',label:'Color',type:'select',options:COLORS}],
+   onSave(v){if(!v.name.trim()){toast('Add a name.');return false}if(isNew)S.members.push({id:uid(),...v,name:v.name.trim(),timeOff:{}});else Object.assign(m,v);saveWs();render();toast(isNew?'Teammate added':'Saved')},
+   onDelete:isNew?null:()=>{S.members=S.members.filter(x=>x.id!==id);tickets().filter(t=>t.assignee===id).forEach(t=>{const c=clone(t);c.assignee=null;saveT(c)});S.risks.forEach(r=>{if(r.owner===id)r.owner=null});saveWs();render();toast('Teammate removed')},delLabel:'Remove'})}
+function openSprint(id){const isNew=!id;const last=sortedSprints().slice(-1)[0];
+  const s=isNew?{name:'Sprint '+(S.sprints.length+1),start:last?addDays(last.end,1):TODAY,end:last?addDays(last.end,14):addDays(TODAY,13),goal:''}:byId(S.sprints,id);
+  openForm({title:isNew?'New sprint':s.name,values:s,saveLabel:isNew?'Create sprint':'Save changes',fields:[{k:'name',label:'Name',req:true},{k:'start',label:'Start',type:'date'},{k:'end',label:'End',type:'date'},{k:'goal',label:'Sprint goal',type:'textarea',wide:true}],
+   onSave(v){if(!v.name.trim()||!v.start||!v.end){toast('A sprint needs a name and dates.');return false}if(v.end<v.start){toast('The end date is before the start date.');return false}
+     if(isNew){const n={id:uid(),...v,status:'planned'};S.sprints.push(n);UI.planSprint=n.id}else Object.assign(s,v);saveWs();render();toast(isNew?'Sprint created':'Sprint saved')},
+   onDelete:isNew||s.status!=='planned'?null:()=>{sprintTickets(id).forEach(t=>{const c=clone(t);moveToSprint(c,null);saveT(c)});S.sprints=S.sprints.filter(x=>x.id!==id);saveWs();render();toast('Sprint deleted; its tickets went back to the backlog')}})}
+function cleanKey(k){return (k||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,5)}
+function keyTaken(k,except){return projOrder().some(id=>id!==except&&PS[id].project.key===k)}
+function openSettings(){
+  openForm({title:'Project settings',values:{name:S.project.name,key:S.project.key,desc:S.project.desc||''},fields:[{k:'name',label:'Project name',req:true},{k:'key',label:'Ticket key',hint:'Applies to new tickets'},{k:'desc',label:'Project objective',type:'textarea',wide:true,hint:'One line shown on the project overview and on All projects'}],
+   onSave(v){if(!v.name.trim()){toast('Add a project name.');return false}const k=cleanKey(v.key)||'TKT';if(keyTaken(k,UI.cur)){toast(`Another project already uses the key ${k}.`);return false}
+     S.project.name=v.name.trim();S.project.desc=(v.desc||'').trim();S.project.key=k;saveWs();render();toast('Project settings saved')},
+   delLabel:'Delete project',onDelete:()=>{const pid=UI.cur,nm=S.project.name;confirmBox(`Delete ${nm}?`,`This permanently deletes ${esc(nm)} and all of its tickets, sprints, epics, milestones, and risks from this browser. Other projects aren’t affected.`,'Delete project',()=>deleteProject(pid));return false}});
+}
+function openNewProject(){
+  let k='PRJ',i=1;while(keyTaken(k))k='PRJ'+(++i);
+  openForm({title:'New project',values:{name:'',key:k,desc:''},saveLabel:'Create project',
+   fields:[{k:'name',label:'Project name',req:true},{k:'key',label:'Ticket key',hint:'Up to 5 letters or numbers, like WEB'},{k:'desc',label:'Project objective',type:'textarea',wide:true}],
+   onSave(v){const nm=(v.name||'').trim();if(!nm){toast('Add a project name.');return false}const key=cleanKey(v.key);if(!key){toast('Add a ticket key.');return false}if(keyTaken(key)){toast(`Another project already uses the key ${key}.`);return false}
+     const data=blankData(nm,key);if(v.desc&&v.desc.trim())data.S.project.desc=v.desc.trim();closeModal();seed(data)}});
+}
+
+/* ---------- portfolio ---------- */
+function projSummary(pid){return withProject(pid,()=>{
+  const a=activeSprint(),[hc,hl]=projectHealth(),all=tickets().filter(t=>t.status!=='triage'),tot=pts(all),dn=pts(all.filter(isDone));
+  const ms=[...S.milestones].sort((x,y)=>x.date<y.date?-1:1).map(m=>({m,r:msStatus(m)}));
+  const next=ms.find(x=>x.m.date>=TODAY&&x.r.st!=='Complete')||null;
+  return {pid,p:S.project,hc,hl,pct:tot?Math.round(dn/tot*100):0,tot,a,pulse:a?sprintPulse(a):null,ms,next,final:ms.length?ms[ms.length-1]:null,
+    att:attentionItems(),crit:tickets().filter(t=>t.type==='bug'&&t.severity==='critical'&&!isDone(t)).length,open:tickets().filter(t=>!isDone(t)&&t.status!=='triage').length,
+    vel:velocity(),team:S.members.map(m=>({name:m.name,role:m.role,color:m.color,as:a?pts(sprintTickets(a.id).filter(t=>t.assignee===m.id)):0,c:a?memberAvail(m,a):0}))}})}
+function avRaw(name,color){const ini=String(name).split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();return `<span class="av" style="background:${esc(color)}" title="${esc(name)}">${esc(ini)}</span>`}
+function vPortfolio(){
+  const ids=projOrder(),act=`<button class="btn pri" data-act="new-project">New project</button>`;
+  if(!ids.length)return vWelcome();
+  const sums=ids.map(projSummary),cnt=c=>sums.filter(s=>s.hc===c).length;
+  const cards=sums.map(s=>`<section class="panel pcard">
+    <div class="phead"><div><span class="key">${esc(s.p.key)}</span><h2><button class="link" data-act="open-project" data-id="${s.pid}">${esc(s.p.name)}</button></h2></div><span class="chip ${s.hc}">${s.hl}</span></div>
+    ${s.p.desc?`<p class="small muted pdesc">${esc(s.p.desc)}</p>`:''}
+    <div class="small" style="display:flex;justify-content:space-between;margin-top:10px"><span>${s.pct}% complete</span><span class="muted">${s.tot} pts total</span></div>${meter(s.pct,100)}
+    <dl class="pfacts">
+      <dt>Sprint</dt><dd>${s.a?`${esc(s.a.name)}, day ${s.pulse.day} of ${s.pulse.len} <span class="chip ${s.pulse.cls}">${s.pulse.cls==='ok'?'On pace':s.pulse.cls==='warn'?'Slightly behind':'Behind'}</span>`:'<span class="muted">None running</span>'}</dd>
+      <dt>Next milestone</dt><dd>${s.next?`${esc(s.next.m.title)}, ${fmtD(s.next.m.date)} <span class="chip ${s.next.r.cls}">${s.next.r.st}</span>`:'<span class="muted">None upcoming</span>'}</dd>
+      <dt>Open work</dt><dd>${plural(s.open,'ticket')}${s.crit?`, <span style="color:var(--bad);font-weight:600">${s.crit} critical</span>`:''}</dd>
+      <dt>Needs attention</dt><dd>${s.att.length?plural(s.att.length,'item'):'<span class="muted">Nothing</span>'}</dd>
+      <dt>Team</dt><dd class="pteam">${s.team.length?s.team.map(m=>avRaw(m.name,m.color)).join(''):'<span class="muted">No one yet</span>'}</dd>
+    </dl>
+    <button class="btn sm" data-act="open-project" data-id="${s.pid}">Open project</button></section>`).join('');
+  const up=sums.flatMap(s=>s.ms.filter(x=>x.r.st!=='Complete'&&x.m.date<=addDays(TODAY,120)).map(x=>({...x,s}))).sort((a,b)=>a.m.date<b.m.date?-1:1);
+  const people={};sums.forEach(s=>s.team.forEach(m=>{const k=m.name.trim().toLowerCase();const e=people[k]=people[k]||{name:m.name,color:m.color,role:m.role,as:0,c:0,projects:[]};e.as+=m.as;e.c+=m.c;e.projects.push({pid:s.pid,key:s.p.key,as:m.as,c:m.c,active:!!s.a})}));
+  const pl=Object.values(people).sort((a,b)=>b.projects.length-a.projects.length||(b.c?b.as/b.c:0)-(a.c?a.as/a.c:0));
+  return head('All projects','Every project you’re tracking, side by side. Health combines each project’s milestone forecasts with its current sprint’s pace.',act)+
+   `<div class="tiles"><div class="tile"><b>${ids.length}</b><span>projects</span></div><div class="tile"><b style="color:var(--ok)">${cnt('ok')}</b><span>on track</span></div><div class="tile"><b style="color:var(--warn)">${cnt('warn')}</b><span>at risk</span></div><div class="tile"><b style="color:var(--bad)">${cnt('bad')}</b><span>off track</span></div><div class="tile"><b>${sums.reduce((a,s)=>a+s.open,0)}</b><span>open tickets across projects</span></div><div class="tile"><b>${sums.reduce((a,s)=>a+s.crit,0)}</b><span>critical bugs open</span></div></div>
+   <div class="pgrid">${cards}</div>
+   <div class="grid2" style="margin-top:16px">
+    <section class="panel"><h2>Upcoming milestones</h2>${up.length?`<ul class="list1">${up.map(x=>`<li><span class="small" style="width:56px;font-weight:600">${fmtD(x.m.date)}</span><div class="sp"><b>${esc(x.m.title)}</b><div class="small muted">${esc(x.s.p.name)}${x.r.f&&x.r.f.date?`, forecast ${fmtD(x.r.f.date)}`:''}</div></div><span class="chip ${x.r.cls}">${x.r.st}</span></li>`).join('')}</ul>`:'<p class="muted">No milestones in the next four months.</p>'}</section>
+    <section class="panel"><h2>People across projects</h2><p class="small muted" style="margin-top:4px">Teammates are matched by name. Load counts only sprints that are running now.</p>${pl.length?`<ul class="list1">${pl.map(m=>`<li>${avRaw(m.name,m.color)}<div class="sp"><div class="small" style="display:flex;justify-content:space-between;gap:8px"><span><b>${esc(m.name)}</b> ${m.projects.map(p=>`<span class="chip">${esc(p.key)}</span>`).join(' ')}</span><span class="muted">${m.c?`${m.as} / ${m.c} pts`:'No active sprint'}</span></div>${m.c?meter(m.as,m.c):''}</div></li>`).join('')}</ul>`:'<p class="muted">No teammates added yet.</p>'}</section>
+   </div>`;
+}
+
+/* ---------- sprint lifecycle ---------- */
+function startSprint(id){const s=byId(S.sprints,id);if(activeSprint()){toast('Complete the active sprint before starting another.');return}
+  const ts=sprintTickets(id);if(!ts.length){toast('Add tickets to this sprint before starting it.');return}
+  s.status='active';s.committed=pts(ts);if(s.start>TODAY){const len=diff(s.start,s.end);s.start=TODAY;s.end=addDays(TODAY,len)}saveWs();UI.view='board';render();toast(`${s.name} started with ${s.committed} points`)}
+function completeSprint(id){const s=byId(S.sprints,id),ts=sprintTickets(id),open=ts.filter(t=>!isDone(t));
+  const next=sortedSprints().find(x=>x.status==='planned'&&x.start>=s.start&&x.id!==id);
+  confirmBox(`Complete ${s.name}?`,`${pts(ts.filter(isDone))} of ${pts(ts)} points are done. ${open.length?`${plural(open.length,'unfinished ticket')} will move to ${next?esc(next.name):'the backlog'}.`:'Everything is finished.'}`,'Complete sprint',()=>{
+    s.burn=burn(s);s.completed=pts(ts.filter(isDone));s.committed=+s.committed||pts(ts);s.status='closed';
+    open.forEach(t=>{const c=clone(t);moveToSprint(c,next?next.id:null);if(next&&c.status==='backlog')c.status='todo';saveT(c)});
+    saveWs();render();toast(`${s.name} completed: ${s.completed} points`)})}
+function autofill(id){const s=byId(S.sprints,id),cap=sprintCap(s),v=velocity(),target=v?Math.min(v,cap||v):cap;
+  let cur=pts(sprintTickets(id)),n=0,added=0;
+  if(!target){toast('Add teammates or finish a sprint so there’s a capacity to fill to.');return}
+  tickets().filter(t=>!t.sprintId&&t.status==='backlog').sort(byRank).forEach(t=>{const p=+t.points||0;if(cur+p<=target){const c=clone(t);moveToSprint(c,id);saveT(c);cur+=p;n++;added+=p}});
+  render();toast(n?`Added ${plural(n,'ticket')} (${added} pts) up to a target of ${target}`:`Nothing else fits under the target of ${target} points`)}
+
+/* ---------- export ---------- */
+function exportCsv(){
+  const cols=['key','type','title','status','priority','severity','points','assignee','sprint','epic','start','due','votes','createdAt','doneAt'];
+  const q=v=>{let s=String(v??'');if(/^[=+\-@]/.test(s))s="'"+s;return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
+  const rows=tickets().sort((a,b)=>(+a.key.split('-')[1])-(+b.key.split('-')[1])).map(t=>cols.map(c=>q(c==='assignee'?(member(t.assignee)||{}).name:c==='sprint'?(byId(S.sprints,t.sprintId)||{}).name:c==='epic'?(byId(S.epics,t.epicId)||{}).title:t[c])).join(','));
+  const blob=new Blob(['\ufeff'+[cols.join(','),...rows].join('\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=S.project.key.toLowerCase()+'-tickets-'+TODAY+'.csv';
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  toast('Exported '+plural(rows.length,'ticket'));
+}
+
+/* ---------- new projects ---------- */
+function blankData(name,key){const mon=(()=>{let x=TODAY;while(parse(x).getDay()!==1)x=addDays(x,1);return x})();
+  return {S:{project:{name,key,desc:''},members:[],sprints:[{id:uid(),name:'Sprint 1',start:mon,end:addDays(mon,13),goal:'',status:'planned'}],epics:[],milestones:[],risks:[],nextNum:1},T:{}}}
+function seed(data){
+  const id=uid();data.S.id=id;data.S.createdAt=new Date().toISOString();
+  PS[id]=data.S;PT[id]=data.T;switchProject(id);UI.view='dashboard';localSave();render();
+  return id;
+}
+
+/* ---------- welcome (no projects yet) ---------- */
+function vWelcome(){
+  return '<section class="panel welcome"><p class="small muted">Welcome to Throughline</p>'+
+  '<h1>Plan the work. See the path to launch.</h1>'+
+  '<p class="lead">Throughline is a project planning tool that keeps the roadmap, the sprint, and delivery health in one place, so you can tell early whether a milestone is still reachable.</p>'+
+  '<div class="row"><button class="btn pri lg" data-act="new-project">Create your first project</button></div>'+
+  '<ul class="wfeat">'+
+  '<li><b>Roadmap and milestones</b><span>Epics over time, with each milestone forecast from real velocity.</span></li>'+
+  '<li><b>Backlog and sprint planning</b><span>Rank by dragging, then size the sprint against capacity net of time off.</span></li>'+
+  '<li><b>Sprint board</b><span>Kanban columns with a work-in-progress limit and blocked-ticket flags.</span></li>'+
+  '<li><b>Timeline</b><span>A draggable Gantt with critical path, baselines, and dependency arrows that turn red on conflicts.</span></li>'+
+  '<li><b>Retrospectives</b><span>Went well, to improve, and action items that become backlog tickets.</span></li>'+
+  '<li><b>Risk log</b><span>A RAID log with a likelihood and impact matrix.</span></li>'+
+  '<li><b>Flow metrics</b><span>Cumulative flow, a cycle-time control chart with Cpk, defect Pareto, and Monte Carlo forecasts.</span></li>'+
+  '<li><b>Coaches</b><span>Scrum Master, Agile Coach, and Lean Six Sigma checks, with optional Claude chat.</span></li>'+
+  '<li><b>Reports</b><span>Velocity, burndown, say/do ratio, cycle time, and bug flow, plus CSV export.</span></li>'+
+  '</ul>'+
+  '<p class="small muted fine">Everything you enter is saved in this browser only. Nothing is sent to a server unless you connect Claude to the coaches, which sends project data to Anthropic’s API using your own key.</p></section>';
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-act]');if(!el)return;const a=el.dataset.act,id=el.dataset.id;
+  switch(a){
+    case 'go':UI.view=el.dataset.v;closeModal();render();$('#mainwrap').scrollTop=0;break;
+    case 'close':closeModal();break;
+    case 'form-del':{const f=FORM;if(f&&f.onDelete){closeModal();f.onDelete()}break}
+    case 'ticket':openTicket(id);break;
+    case 'new-ticket':{const p={};if(el.dataset.type){p.type=el.dataset.type;p.status='triage';p.points=0;p.priority=el.dataset.type==='bug'?'P1':'P2';if(p.type==='bug')p.severity='major'}if(el.dataset.sprint){p.sprintId=el.dataset.sprint;p.status='todo'}openTicket(null,p);break}
+    case 'epic':openEpic(id);break;case 'new-epic':openEpic();break;
+    case 'milestone':openMilestone(id);break;case 'new-milestone':openMilestone();break;
+    case 'risk':openRisk(id);break;case 'new-risk':openRisk();break;
+    case 'member':openMember(id);break;case 'new-member':openMember();break;
+    case 'sprint':openSprint(id);break;case 'new-sprint':openSprint();break;
+    case 'settings':openSettings();break;
+    case 'new-project':openNewProject();break;
+    case 'open-project':switchProject(id);UI.view='dashboard';closeModal();render();$('#mainwrap').scrollTop=0;break;
+    case 'start-sprint':startSprint(id);break;case 'complete-sprint':completeSprint(id);break;
+    case 'autofill':autofill(id);break;
+    case 'accept':{const c=clone(T[id]);c.status='backlog';c.rank=maxRank()+1;if(!c.points)c.points=3;saveT(c);render();toast(`${c.key} moved to the backlog`);break}
+    case 'vote':{const c=clone(T[id]);c.votes=(+c.votes||0)+1;saveT(c);render();break}
+    case 'gzoom':UI.gZoom=+el.dataset.z;render();break;
+    case 'gcrit':UI.gCrit=!UI.gCrit;render();break;
+    case 'gbase':UI.gBase=!UI.gBase;render();break;
+    case 'gbase-save':{const save=()=>{const items={};tickets().forEach(t=>{if(t.start&&t.due)items[t.id]=[t.start,t.due]});S.baseline={at:TODAY,items};UI.gBase=true;saveWs();render();toast(`Baseline saved for ${plural(Object.keys(items).length,'ticket')}`)};
+      if(S.baseline)confirmBox('Replace the baseline?',`The baseline from ${fmtD(S.baseline.at)} will be replaced with every ticket’s current dates.`,'Re-baseline',save);else save();break}
+    case 'retro-add':retroAdd(el.dataset.col);break;
+    case 'retro-del':{const r=retroOf(UI.retroSprint);if(r){r[el.dataset.col]=r[el.dataset.col].filter(x=>x.id!==id);saveWs();render()}break}
+    case 'retro-ticket':retroTicket(id);break;
+    case 'retro-done':{const r=(S.retros||[]).find(x=>x.id===el.dataset.r),it=r&&r.actions.find(x=>x.id===id);if(it){it.done=true;saveWs();render();toast('Action item closed')}break}
+    case 'copy':{const t=document.getElementById(el.dataset.src),no=()=>toast('Couldn’t copy. Select the text and copy it instead.');if(!t)break;
+      if(navigator.clipboard)navigator.clipboard.writeText(t.textContent).then(()=>toast('Copied to the clipboard'),no);else no();break}
+    case 'ai-settings':openAiSettings();break;
+    case 'ai-ask':askAgent(el.dataset.k,el.dataset.q);break;
+    case 'ai-send':askAgent(el.dataset.k,($('#aiIn')||{}).value);break;
+    case 'ai-stop':if(AISTREAM)AISTREAM.abort();break;
+    case 'ai-reset':delete CHAT[UI.cur+':'+el.dataset.k];render();break;
+    case 'export':exportCsv();break;
+  }
+});
+function onChg(e){
+  const el=e.target;const k=el.dataset&&el.dataset.chg;if(!k)return;
+  if(k==='ai-draft'){UI.aiDraft=el.value;return}
+  if(k==='bq'){UI.bq=el.value;render()}
+  else if(k==='tq'){UI.tf.q=el.value;render()}
+  else if(e.type!=='change')return;
+  else if(k==='tf'){UI.tf[el.dataset.k]=el.value;render()}
+  else if(k==='move-sprint'){const c=clone(T[el.dataset.id]);moveToSprint(c,el.value);c.rank=maxRank()+1;saveT(c);render();toast(`${c.key} moved to ${el.value?byId(S.sprints,el.value).name:'the backlog'}`)}
+  else if(k==='board-who'){UI.boardWho=el.value;render()}
+  else if(k==='plan-sprint'){UI.planSprint=el.value;render()}
+  else if(k==='switch-project'){switchProject(el.value);if(UI.view==='portfolio')UI.view='dashboard';render();$('#mainwrap').scrollTop=0}
+  else if(k==='report-sprint'){UI.reportSprint=el.value;render()}
+  else if(k==='retro-sprint'){UI.retroSprint=el.value;render()}
+  else if(k==='mc-scope'){UI.mcScope=el.value;render()}
+  else if(k==='usl'){S.flow=S.flow||{};S.flow.usl=Math.max(0,Math.round(+el.value||0));saveWs();render()}
+  else if(k==='timeoff'){const m=member(el.dataset.m);m.timeOff=m.timeOff||{};m.timeOff[el.dataset.s]=Math.max(0,+el.value||0);saveWs();render()}
+}
+document.addEventListener('input',onChg);document.addEventListener('change',onChg);
+document.addEventListener('submit',e=>{if(e.target.id!=='dlgForm')return;e.preventDefault();const fd=new FormData(e.target),out={};
+  FORM.fields.forEach(f=>{let v=fd.get(f.k);if(f.type==='number')v=v===''||v==null?0:Number(v);out[f.k]=v??''});const f=FORM;if(f.onSave(out)!==false&&FORM===f)closeModal()});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&!$('#modal').hidden){closeModal();return}
+  if(e.key==='Enter'&&!e.isComposing&&e.target.dataset&&e.target.dataset.retro){e.preventDefault();retroAdd(e.target.dataset.retro);return}
+  if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&e.target.id==='aiIn'){e.preventDefault();const b=$('[data-act="ai-send"]');if(b)askAgent(b.dataset.k,e.target.value);return}
+  const tag=(e.target.tagName||'').toLowerCase();
+  if(S&&UI.view!=='portfolio'&&$('#modal').hidden&&(e.key==='n'||e.key==='N')&&!e.metaKey&&!e.ctrlKey&&!['input','textarea','select'].includes(tag)){e.preventDefault();openTicket()}
+});
+
+/* drag and drop: backlog rows and board cards */
+document.addEventListener('dragstart',e=>{const el=e.target.closest&&e.target.closest('[data-drag]');if(!el)return;UI.dragId=el.dataset.drag;e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',UI.dragId)}catch(_){}el.classList.add('dragging')});
+document.addEventListener('dragend',()=>{UI.dragId=null;document.querySelectorAll('.dragging,.over-drop,.drop-before').forEach(x=>x.classList.remove('dragging','over-drop','drop-before'))});
+document.addEventListener('dragover',e=>{if(!UI.dragId)return;const z=e.target.closest('[data-drop]');if(!z)return;e.preventDefault();
+  document.querySelectorAll('.over-drop,.drop-before').forEach(x=>{if(x!==z)x.classList.remove('over-drop','drop-before')});z.classList.add('over-drop');
+  const row=e.target.closest('[data-rowid]');if(row&&row.dataset.rowid!==UI.dragId)row.classList.add('drop-before')});
+document.addEventListener('drop',e=>{const z=e.target.closest('[data-drop]');if(!z||!UI.dragId)return;e.preventDefault();
+  const id=UI.dragId,row=e.target.closest('[data-rowid]'),t=clone(T[id]);if(!t)return;const tgt=z.dataset.drop;
+  if(tgt.startsWith('status:')){setStatus(t,tgt.slice(7));}
+  else{const sid=tgt==='backlog'?null:tgt.slice(7);moveToSprint(t,sid);
+    const list=tickets().filter(x=>x.id!==id&&(sid?x.sprintId===sid:(!x.sprintId&&x.status!=='triage'&&!isDone(x)))).sort(byRank);
+    const before=row&&row.dataset.rowid!==id?list.findIndex(x=>x.id===row.dataset.rowid):-1;
+    if(before>=0){const b=list[before],p=list[before-1];t.rank=p?((+p.rank||0)+(+b.rank||0))/2:(+b.rank||0)-1}else t.rank=(list.length?Math.max(...list.map(x=>+x.rank||0)):0)+1;}
+  saveT(t);UI.dragId=null;render()});
+
+/* gantt bar drag */
+let GD=null,pendingRender=false;
+document.addEventListener('pointerdown',e=>{const b=e.target.closest('.gbar[data-gid]');if(!b||e.button>0)return;e.preventDefault();
+  try{b.setPointerCapture(e.pointerId)}catch(_){}
+  GD={id:b.dataset.gid,b,x0:e.clientX,left:parseFloat(b.style.left),width:parseFloat(b.style.width),mode:e.target.classList.contains('grip')?'resize':'move',moved:false}});
+document.addEventListener('pointermove',e=>{if(!GD)return;const dx=e.clientX-GD.x0,z=UI.gZoom;if(Math.abs(dx)>3)GD.moved=true;const snap=Math.round(dx/z)*z;
+  if(GD.mode==='move')GD.b.style.left=(GD.left+snap)+'px';else GD.b.style.width=Math.max(z-2,GD.width+snap)+'px'});
+function endDrag(e){if(!GD)return;const g=GD;GD=null;const dd=Math.round((e.clientX-g.x0)/UI.gZoom);
+  if(!g.moved){pendingRender=false;openTicket(g.id);return}
+  const t=clone(T[g.id]);if(t&&dd){if(g.mode==='move'){t.start=addDays(t.start,dd);t.due=addDays(t.due,dd)}else{t.due=addDays(t.due,dd);if(t.due<t.start)t.due=t.start}saveT(t);toast(`${t.key}: ${fmtD(t.start)} to ${fmtD(t.due)}`)}
+  pendingRender=false;render()}
+document.addEventListener('pointerup',endDrag);document.addEventListener('pointercancel',e=>{if(GD){GD=null;render()}});
+
+/* ---------- boot ---------- */
+function init(){localLoad();render()}
+init();
+</script>
+</body>
+</html>
