@@ -67,6 +67,6 @@ export function Welcome() {
     <p className="lead">Throughline keeps the roadmap, the sprint, the rollout plan, and delivery health in one place, so you can tell early whether a milestone is still reachable.</p>
     <div className="row"><Btn variant="pri" lg onClick={openNewProject}>Create your first project</Btn></div>
     <ul className="wfeat">{feats.map(([b, s]) => <li key={b}><b>{b}</b><span>{s}</span></li>)}</ul>
-    <p className="small muted fine">Everything you enter is saved in this browser only. Nothing is sent to a server unless you connect Claude to the coaches, which sends project data to Anthropic’s API using your own key.</p>
+    <p className="small muted fine">Projects are stored in this browser. If configured, sprint dates and the selected Finance project are sent to your Burnrate Finance endpoint to retrieve spending. Coach chats send project context to Anthropic when connected with your own key.</p>
   </section>;
 }

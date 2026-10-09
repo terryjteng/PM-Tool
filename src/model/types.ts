@@ -88,6 +88,8 @@ export interface Settings {
   usl: number;
   coach: { disabled: string[]; staleDays: number; bigPoints: number; sayDoMin: number; readySprints: number };
   aiNotes: Record<string, string>;
+  financeApiUrl: string;
+  financeProject: string;
 }
 
 export interface Project {

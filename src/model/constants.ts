@@ -18,6 +18,8 @@ export const DEFAULT_SETTINGS: Settings = {
   usl: 0,
   coach: { disabled: [], staleDays: 5, bigPoints: 13, sayDoMin: 80, readySprints: 2 },
   aiNotes: {},
+  financeApiUrl: '',
+  financeProject: '',
 };
 
 /** Project settings with defaults filled in, so older saved projects keep working. */

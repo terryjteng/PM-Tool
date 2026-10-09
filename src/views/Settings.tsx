@@ -96,7 +96,7 @@ export function Settings({ p }: { p: Project }) {
   const allWs = () => useData.getState().ws;
 
   return <>
-    <Head title="Settings" desc={`Everything adjustable for ${p.name}: names, workflow, limits, coach checks, and your data. Changes apply immediately and can be undone with Ctrl+Z.`} />
+    <Head title="Settings" desc={`Everything adjustable for ${p.name}: names, workflow, limits, coach checks, integrations, and your data. Changes apply immediately and can be undone with Ctrl+Z.`} />
     <div className="stack">
       <Section title="Project" desc="Name, ticket key, and the one-line objective shown on the overview.">
         <div className="fgrid flat">
@@ -105,6 +105,13 @@ export function Settings({ p }: { p: Project }) {
           <label className="fld wide"><span>Project objective</span><textarea rows={2} value={basics.desc} onChange={e => setBasics({ ...basics, desc: e.target.value })} /></label>
         </div>
         <div className="rowflex"><Btn variant="pri" disabled={!dirty} onClick={saveBasics}>Save project details</Btn>{dirty && <Btn variant="ghost" onClick={() => setBasics({ name: p.name, key: p.key, desc: p.desc })}>Discard</Btn>}</div>
+      </Section>
+
+      <Section title="Sprint cost feed" desc="Read sprint spending from Burnrate Finance and show it beside work burndown. This connection is read-only.">
+        <div className="fgrid flat">
+          <label className="fld wide"><span>Burnrate Finance URL</span><input type="url" value={st.financeApiUrl} placeholder="https://your-burnrate-finance.vercel.app" onChange={e => set('Change finance URL', x => { x.financeApiUrl = e.target.value }, 'finance-url')} /><small>Enter the deployed site origin, without a path. In Finance, allow this PM app’s origin in ALLOWED_ORIGINS.</small></label>
+          <label className="fld"><span>Finance project</span><input value={st.financeProject} placeholder="All projects" onChange={e => set('Change finance project', x => { x.financeProject = e.target.value }, 'finance-project')} /><small>Must match a project name in Burnrate Finance. Leave blank to include all projects.</small></label>
+        </div>
       </Section>
 
       <Section title="Workflow" desc="Rename statuses and ticket types to match how your team talks. The underlying workflow stays the same, so reports keep working.">
@@ -158,7 +165,7 @@ export function Settings({ p }: { p: Project }) {
         <p className="small muted" style={{ marginTop: 8 }}>Imports are added as new projects; nothing is overwritten.</p>
         <hr className="sep" />
         <div className="rowflex wrap">
-          <Btn variant="danger" onClick={() => confirmBox('Reset all settings?', 'Status names, type names, limits, defaults, coach thresholds, and turned-off checks go back to their defaults. Your tickets and plans aren’t affected.', 'Reset settings', () => { mutP(p.id, 'Reset settings', d => { d.settings = {} }); toast('Settings reset', { undo: true }) })}>Reset settings</Btn>
+          <Btn variant="danger" onClick={() => confirmBox('Reset all settings?', 'Status names, type names, limits, defaults, coach thresholds, finance connection, and turned-off checks go back to their defaults. Your tickets and plans aren’t affected.', 'Reset settings', () => { mutP(p.id, 'Reset settings', d => { d.settings = {} }); toast('Settings reset', { undo: true }) })}>Reset settings</Btn>
           <Btn variant="danger" onClick={() => deleteProject(p.id)}>Delete this project</Btn>
         </div>
       </Section>

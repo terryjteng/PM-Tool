@@ -1,11 +1,16 @@
+import { useEffect, useState } from 'react';
 import { TODAY, addDays, diff, fmtD, plural, workdays } from '../lib/dates';
 import { activeSprint, burn, burnup, byId, isDone, pts, sortedSprints, sprintTickets, tickets, velocity, scopeTickets } from '../model/selectors';
+import { cfg } from '../model/constants';
 import type { Project, Sprint, Ticket } from '../model/types';
 import { go, useUI } from '../model/ui';
 import { Btn, Empty, Head, Legend, Seg, Tile } from '../components/ui';
 import { BarChart, LineChart } from '../components/charts';
+import { fetchSprintCost, type SprintCost } from '../lib/burnrate';
 
 type Metric = 'points' | 'count';
+type FinanceState = { status: 'idle' | 'loading' } | { status: 'ready'; data: SprintCost } | { status: 'error'; message: string };
+const formatMoney = (value: number) => value.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
 const val = (a: Ticket[], m: Metric) => (m === 'points' ? pts(a) : a.length);
 
 /** Day-by-day remaining, scope, ideal, and a straight-line projection for one sprint. */
@@ -40,8 +45,24 @@ export function sprintSeries(p: Project, s: Sprint, m: Metric) {
 
 export function Burndown({ p }: { p: Project }) {
   const f = useUI(s => s.f), setF = useUI(s => s.setF), m = f.bdMetric, unit = m === 'points' ? 'points' : 'tickets';
+  const settings = cfg(p), financeUrl = settings.financeApiUrl.trim(), financeProject = settings.financeProject.trim();
   const opts = sortedSprints(p).filter(s => s.status !== 'planned').reverse();
   const s = byId(opts, f.bdSprint) || activeSprint(p) || opts[0];
+  const [finance, setFinance] = useState<FinanceState>({ status: 'idle' });
+  useEffect(() => {
+    if (!financeUrl || !s) {
+      setFinance({ status: 'idle' });
+      return;
+    }
+    const controller = new AbortController();
+    setFinance({ status: 'loading' });
+    fetchSprintCost(financeUrl, s.start, s.end, financeProject, controller.signal).then(data => {
+      if (!controller.signal.aborted) setFinance({ status: 'ready', data });
+    }).catch(error => {
+      if (!controller.signal.aborted) setFinance({ status: 'error', message: error instanceof Error ? error.message : 'Unable to load sprint costs.' });
+    });
+    return () => controller.abort();
+  }, [financeUrl, financeProject, s?.start, s?.end]);
   const scopeOpts: [string, string][] = [['all', 'All work'], ...p.epics.map(e => ['e:' + e.id, 'Epic: ' + e.title] as [string, string]), ...p.milestones.map(x => ['m:' + x.id, 'Milestone: ' + x.title] as [string, string])];
   const bu = burnup(p, f.bdScope, m);
   const ss = s ? sprintSeries(p, s, m) : null;
@@ -95,6 +116,25 @@ export function Burndown({ p }: { p: Project }) {
       <Legend items={[['var(--accent)', `${m === 'points' ? 'Points' : 'Tickets'} remaining`], ['var(--accent)', 'Projection at the current pace', true], ['var(--muted)', 'Ideal', true], ['var(--warn)', 'Total scope']]} />
       {m === 'points' && <p className="small muted" style={{ marginTop: 8 }}>Scope is recorded daily while a sprint is active, so mid-sprint additions show as a step in the amber line. Hover the chart for exact values.</p>}
     </section> : <Empty>No sprint has started yet. <Btn sm variant="pri" onClick={() => go('planning')}>Plan a sprint</Btn></Empty>}
+
+    {s && ss && <section className="panel" style={{ marginTop: 16 }}>
+      <div className="phead"><div><h2>Sprint financial burn: {s.name}</h2><p className="small muted">Cumulative spend against the finance plan, alongside work burndown.</p></div></div>
+      {!financeUrl ? <p className="small muted">Connect Burnrate Finance to see sprint spending. <Btn sm onClick={() => go('settings')}>Configure finance feed</Btn></p>
+        : finance.status === 'loading' ? <p className="small muted" role="status">Loading sprint costs…</p>
+          : finance.status === 'error' ? <p className="signal bad" role="alert">{finance.message}</p>
+            : finance.status === 'ready' ? <>
+              <div className="tiles">
+                <Tile v={formatMoney(finance.data.actual)} label="spent so far" />
+                <Tile v={formatMoney(finance.data.plannedToDate)} label="planned spend to date" />
+                <Tile v={formatMoney(finance.data.budget)} label="sprint budget" />
+                <Tile v={formatMoney(finance.data.remaining)} label={finance.data.remaining < 0 ? 'over budget' : 'budget remaining'} color={finance.data.remaining < 0 ? 'var(--bad)' : undefined} />
+              </div>
+              <LineChart w={1100} h={280} labels={finance.data.daily.map(day => fmtD(day.date))} ymax={Math.max(finance.data.budget, ...finance.data.daily.map(day => day.plannedSpend), ...finance.data.daily.map(day => day.spend ?? 0), 1)} label="Cumulative sprint spend"
+                valueFormat={formatMoney}
+                series={[{ name: 'Planned cumulative spend', vals: finance.data.daily.map(day => day.plannedSpend), color: 'var(--muted)', dash: true }, { name: 'Actual cumulative spend', vals: finance.data.daily.map(day => day.spend), color: 'var(--accent)', dots: true }]} />
+              <Legend items={[['var(--muted)', 'Planned cumulative spend', true], ['var(--accent)', 'Actual cumulative spend']]} />
+            </> : null}
+    </section>}
 
     <div className="grid2" style={{ marginTop: 16 }}>
       <section className="panel">

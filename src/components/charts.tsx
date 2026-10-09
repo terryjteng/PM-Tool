@@ -7,9 +7,9 @@ export function niceMax(v: number) {
   const s = (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * p;
   return { max: Math.ceil(v / s) * s, step: s };
 }
-function YGrid({ w, pl, pr, y, max, step }: { w: number; pl: number; pr: number; y: (v: number) => number; max: number; step: number }) {
+function YGrid({ w, pl, pr, y, max, step, format }: { w: number; pl: number; pr: number; y: (v: number) => number; max: number; step: number; format?: (v: number) => string }) {
   const out: ReactNode[] = [];
-  for (let v = 0; v <= max + 1e-9; v += step) out.push(<g key={v}><line x1={pl} x2={w - pr} y1={y(v)} y2={y(v)} stroke="var(--line)" /><text x={pl - 7} y={y(v) + 4} textAnchor="end" fontSize={11} fill="var(--muted)">{Math.round(v)}</text></g>);
+  for (let v = 0; v <= max + 1e-9; v += step) out.push(<g key={v}><line x1={pl} x2={w - pr} y1={y(v)} y2={y(v)} stroke="var(--line)" /><text x={pl - 7} y={y(v) + 4} textAnchor="end" fontSize={11} fill="var(--muted)">{format ? format(v) : Math.round(v)}</text></g>);
   return <>{out}</>;
 }
 function XTicks({ labels, x, h }: { labels: string[]; x: (i: number) => number; h: number }) {
@@ -19,7 +19,7 @@ function XTicks({ labels, x, h }: { labels: string[]; x: (i: number) => number; 
 
 export interface Series { name: string; vals: (number | null)[]; color: string; dash?: boolean; dots?: boolean; width?: number }
 /** Line chart with a hover readout. null values break the line (used for projections). */
-export function LineChart({ w = 640, h = 230, labels, series, ymax, label, markers = [] }: { w?: number; h?: number; labels: string[]; series: Series[]; ymax?: number; label?: string; markers?: { i: number; text: string; color: string }[] }) {
+export function LineChart({ w = 640, h = 230, labels, series, ymax, label, markers = [], valueFormat }: { w?: number; h?: number; labels: string[]; series: Series[]; ymax?: number; label?: string; markers?: { i: number; text: string; color: string }[]; valueFormat?: (value: number) => string }) {
   const [hov, setHov] = useState<number | null>(null);
   const pl = 36, pr = 12, pt = 12, pb = 28, n = labels.length;
   const { max, step } = niceMax(ymax || Math.max(1, ...series.flatMap(s => s.vals.filter((v): v is number => v != null))));
@@ -32,7 +32,7 @@ export function LineChart({ w = 640, h = 230, labels, series, ymax, label, marke
   return (
     <div className="chartwrap">
       <svg className="chart" viewBox={`0 0 ${w} ${h}`} role="img" aria-label={label || series.map(s => s.name).join(' vs ')} onPointerMove={onMove} onPointerLeave={() => setHov(null)}>
-        <YGrid w={w} pl={pl} pr={pr} y={y} max={max} step={step} />
+        <YGrid w={w} pl={pl} pr={pr} y={y} max={max} step={step} format={valueFormat} />
         <XTicks labels={labels} x={x} h={h} />
         {markers.map(m => <g key={m.text}><line x1={x(m.i)} x2={x(m.i)} y1={pt} y2={h - pb} stroke={m.color} strokeDasharray="3 4" /><text x={x(m.i) + 4} y={pt + 10} fontSize={10.5} fill={m.color}>{m.text}</text></g>)}
         {series.map(s => <path key={s.name} d={path(s.vals)} fill="none" stroke={s.color} strokeWidth={s.width ?? (s.dash ? 1.5 : 2.5)} strokeDasharray={s.dash ? '5 4' : undefined} strokeLinejoin="round" strokeLinecap="round" />)}
@@ -40,7 +40,7 @@ export function LineChart({ w = 640, h = 230, labels, series, ymax, label, marke
         {hov != null && <line x1={x(hov)} x2={x(hov)} y1={pt} y2={h - pb} stroke="var(--muted)" strokeOpacity={.5} />}
         {hov != null && series.map(s => s.vals[hov] == null ? null : <circle key={'h' + s.name} cx={x(hov)} cy={y(s.vals[hov]!)} r={4.5} fill={s.color} stroke="var(--panel)" strokeWidth={2} />)}
       </svg>
-      {hov != null && <div className="charttip" style={{ left: `${x(hov) / w * 100}%` }}><b>{labels[hov]}</b>{series.map(s => s.vals[hov] == null ? null : <span key={s.name}><i style={{ background: s.color }} />{s.name}: {Math.round(s.vals[hov]! * 10) / 10}</span>)}</div>}
+      {hov != null && <div className="charttip" style={{ left: `${x(hov) / w * 100}%` }}><b>{labels[hov]}</b>{series.map(s => s.vals[hov] == null ? null : <span key={s.name}><i style={{ background: s.color }} />{s.name}: {valueFormat ? valueFormat(s.vals[hov]!) : Math.round(s.vals[hov]! * 10) / 10}</span>)}</div>}
     </div>
   );
 }

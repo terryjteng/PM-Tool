@@ -21,6 +21,10 @@ Everything is saved in the browser's localStorage under `throughline:v3`. Projec
 
 The coach chats are optional and use the viewer's own Anthropic API key, stored only in their browser and sent only to `api.anthropic.com` along with a snapshot of the current project.
 
+## Burnrate Finance
+
+The Burndown view can show cumulative sprint spending beside work burndown. In **Settings → Sprint cost feed**, enter the deployed Burnrate Finance site origin and, optionally, the matching Finance project name. The integration reads `GET /api/finance?view=sprint-cost` and does not need a Finance write key. Add the PM app's browser origin to Finance's `ALLOWED_ORIGINS` setting so the browser can read the API.
+
 ## Layout
 
 | Path | What it holds |
